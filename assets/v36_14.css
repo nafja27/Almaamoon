@@ -561,3 +561,58 @@
   animation:none!important
  }
 }
+
+
+/* V36.14.1 — restore clean writing/tracing UI */
+#writeScreen,#labScreen{
+  background:
+    linear-gradient(rgba(238,249,255,.86),rgba(248,252,255,.92)),
+    url('bahrain-world.webp?v=33') center/cover!important;
+}
+#writeScreen .activity-board,
+#labScreen .lab-content{
+  background:rgba(255,255,255,.97)!important;
+  border:4px solid #d4e8ef!important;
+  border-radius:30px!important;
+  box-shadow:0 16px 36px rgba(7,52,84,.18)!important;
+}
+#writeScreen .activity-board::before{display:none!important}
+#writeScreen .activity-title h2{
+  background:none!important;color:#0d3f65!important;border:0!important;
+  border-radius:0!important;box-shadow:none!important;text-shadow:none!important;
+  padding:0!important
+}
+#writeScreen .trace-wrap,
+#labScreen .trace-wrap{
+  position:relative!important;width:min(360px,82vw)!important;aspect-ratio:1!important;
+  margin:14px auto 8px!important;border-radius:28px!important;background:#fff!important;
+  border:4px solid #cfe3ea!important;
+  box-shadow:inset 0 0 0 10px #f6fbfd,0 10px 24px rgba(13,63,101,.12)!important;
+  overflow:hidden!important
+}
+#writeScreen .trace-wrap::before,
+#labScreen .trace-wrap::before{
+  content:""!important;position:absolute!important;inset:auto 8% 34% 8%!important;
+  border-top:2px dashed #dfeaf0!important;display:block!important
+}
+#writeScreen .trace-wrap.traced,
+#labScreen .trace-wrap.traced{
+  border-color:#42b966!important;
+  box-shadow:inset 0 0 0 10px #eafaf0,0 10px 24px rgba(13,63,101,.12)!important
+}
+#writeScreen .trace-hint,#labScreen .trace-hint{color:#efb831!important;filter:none!important}
+#writeScreen .trace-actions .big-btn,#labScreen .trace-actions .big-btn{
+  border-radius:18px!important;box-shadow:0 7px 14px rgba(7,47,73,.14)!important
+}
+#writeScreen .trace-actions .big-btn.primary,#labScreen .trace-actions .big-btn.primary{
+  background:linear-gradient(180deg,#29cb70,#159f4e)!important;
+  border:0!important;border-bottom:4px solid #0a7b38!important;color:#fff!important
+}
+#writeScreen .trace-actions .big-btn.ghost,#labScreen .trace-actions .big-btn.ghost{
+  background:#fff!important;color:#0d3f65!important;border:2px solid #bcdbe6!important
+}
+#writeScreen .feedback{border-radius:18px!important;box-shadow:none!important}
+#writeScreen .letter-card,#writeScreen .write-intro{background:#fff!important}
+@media(max-width:760px){
+  #writeScreen .trace-wrap,#labScreen .trace-wrap{width:min(320px,80vw)!important}
+}
