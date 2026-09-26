@@ -616,3 +616,42 @@
 @media(max-width:760px){
   #writeScreen .trace-wrap,#labScreen .trace-wrap{width:min(320px,80vw)!important}
 }
+
+
+/* V36.15 — crisp start map: keep the real map sharp instead of stretching/zooming it */
+#startScreen .v36-map-card{
+  background:#0a6f97!important;
+  isolation:isolate;
+}
+#startScreen .v36-map-card::before{
+  content:"";
+  position:absolute;
+  inset:-3%;
+  z-index:0;
+  background:url('bahrain-home-map.webp?v=365') center/cover no-repeat;
+  filter:blur(14px) saturate(1.08) brightness(.88);
+  transform:scale(1.06);
+  opacity:.48;
+  pointer-events:none;
+}
+#startScreen .v36-map-card img{
+  position:relative!important;
+  z-index:1!important;
+  width:100%!important;
+  height:100%!important;
+  object-fit:contain!important;
+  object-position:center!important;
+  transform:none!important;
+  filter:none!important;
+  image-rendering:auto!important;
+  backface-visibility:hidden;
+}
+#startScreen .v36-map-card::after{
+  z-index:2!important;
+  background:
+    linear-gradient(90deg,rgba(2,33,66,.34) 0%,rgba(2,33,66,.06) 29%,rgba(2,33,66,0) 52%),
+    linear-gradient(180deg,rgba(2,30,60,.06),transparent 18%,transparent 82%,rgba(2,30,60,.14))!important;
+}
+@media(max-width:760px){
+ #startScreen .v36-map-card img{object-fit:cover!important;transform:none!important}
+}
