@@ -55,7 +55,22 @@ checkAiReady();window.addEventListener('maamoon-ai-voice',e=>{const ok=!!e.detai
 
 function setAvatar(mode){avatar.classList.remove('talking','listening','thinking');if(mode)avatar.classList.add(mode)}
 function setStatus(text,kind=''){status.className='mb-scene-status'+(kind?' '+kind:'');status.querySelector('span').textContent=text}
-function addMsg(who,text){if(!text||!text.trim())return;const m=el('div','mb-msg '+who,safe(text.trim()));transcript.appendChild(m);transcript.scrollTop=transcript.scrollHeight}
+function addMsg(who,text){
+ if(!text||!text.trim())return;
+ /* V36.15 — keep the child focused on the current exchange instead of stacking every turn downward */
+ if(who==='child'){
+  transcript.querySelectorAll('.mb-msg.child,.mb-msg.mamoun').forEach(n=>n.remove());
+ }else if(who==='mamoun'){
+  transcript.querySelectorAll('.mb-msg.mamoun').forEach(n=>n.remove());
+ }else if(who==='system'){
+  transcript.querySelectorAll('.mb-msg.system').forEach(n=>n.remove());
+ }
+ const m=el('div','mb-msg '+who,safe(text.trim()));
+ transcript.appendChild(m);
+ const msgs=[...transcript.querySelectorAll('.mb-msg')];
+ while(msgs.length>3){const n=msgs.shift();if(n&&n.parentNode)n.remove()}
+ requestAnimationFrame(()=>{transcript.scrollTop=0});
+}
 function clearWelcome(){const w=transcript.querySelector('.mb-welcome');if(w)w.remove()}
 function send(obj){if(dc?.readyState==='open')dc.send(JSON.stringify(obj))}
 function refreshContext(){if(!connected)return;send({type:'session.update',session:{instructions:baseInstruction()}})}
@@ -69,7 +84,7 @@ function onEvent(e){let ev;try{ev=JSON.parse(e.data)}catch{return}
   case 'input_audio_buffer.speech_stopped': setAvatar('thinking');setStatus('أفكر في إجابتك…','live');break;
   case 'conversation.item.input_audio_transcription.completed':
     lastUser=ev.transcript||'';if(lastUser){clearWelcome();addMsg('child',lastUser)}break;
-  case 'response.created': setAvatar('thinking');setStatus('أفكر…','live');lastAssistant='';break;
+  case 'response.created': transcript.querySelectorAll('.mb-msg.mamoun').forEach(n=>n.remove());setAvatar('thinking');setStatus('أفكر…','live');lastAssistant='';break;
   case 'response.output_audio_transcript.delta':
     lastAssistant+=(ev.delta||'');setAvatar('talking');setStatus('المأمون يتحدث…','live');break;
   case 'response.output_audio_transcript.done':
