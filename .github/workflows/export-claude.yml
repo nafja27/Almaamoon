@@ -1,0 +1,37 @@
+name: Export game for Claude
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - .github/workflows/export-claude.yml
+
+jobs:
+  export:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Upload complete game
+        uses: actions/upload-artifact@v4
+        with:
+          name: Almaamoon-V36.20-Claude
+          if-no-files-found: error
+          retention-days: 7
+          path: |
+            index.html
+            README_V33.txt
+            START_GAME.command
+            START_GAME_WINDOWS.bat
+            game.js
+            index(20260924-051718).html
+            mamoun-buddy.css
+            mamoun-buddy.js
+            mamoun-buddy.png
+            v35.css
+            assets/**
+            netlify/**
