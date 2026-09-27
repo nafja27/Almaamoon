@@ -908,6 +908,21 @@ function actReview(ctx){const m=curMission();let items;
   items=shuffle([...hearWordItems(t,ctx.remedial?2:5,ctx),...pics])}
  const [ti,te]=mTitle();runMCQ(m.k,items,ctx,ti,te)}
 
+/* يحافظ على أبعاد الخريطة الأصلية ويترك مساحة لبطاقة المهمة */
+const MAP_AR=1536/928;
+function fitMap(){
+ const world=document.querySelector('#worldScreen .world'),box=$('mapBox');if(!world||!box)return;
+ const mobile=innerWidth<=760,panel=$('missionPanel');
+ const W=world.clientWidth,H=world.clientHeight;
+ const pw=mobile?0:((panel&&panel.offsetWidth)||0)+28;
+ const ph=mobile?148:0;
+ const aw=Math.max(220,W-pw-16),ah=Math.max(180,H-ph-16);
+ let w=Math.min(aw,ah*MAP_AR),h=w/MAP_AR;
+ box.style.width=w+'px';box.style.height=h+'px';
+ box.style.left=(8+(aw-w)/2)+'px';box.style.top=(8+(ah-h)/2)+'px';
+ box.style.setProperty('--mw',w+'px')
+}
+
 /* ================= نقاط المهام على خريطة اللعب V36.14 =================
    كل محطة لها mini-board خاص بها مثل ألعاب الـparty.
    نقاط المهمة تحيط بالمعلم نفسه، والمأمون يقف على المهمة الحالية. */
