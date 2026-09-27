@@ -212,7 +212,16 @@ function startLogin(){overlay(`<h2>دخول الطالب</h2>${G('Student login'
  if(CLOUD){const btn=$('doLogin');btn.disabled=true;btn.textContent='...';cloudStudentLogin(code,pin).then(s=>{closeOverlay();if(s.pinPrompt||(s.pinDefault&&s.pinPrompt!==false))askPinChoice(s,afterLogin);else afterLogin()}).catch(e=>{btn.disabled=false;btn.textContent='دخول';flash(cloudMsg(e))});return}
  const s=db.students.find(x=>x.code.toUpperCase()===code&&x.pin===pin);if(!s)return flash('بيانات الدخول غير صحيحة — Wrong code or PIN');session={role:'student',id:s.id};s.lastLogin=new Date().toISOString();persist();closeOverlay();if(s.pinPrompt)askPinChoice(s,afterLogin);else afterLogin()};$('doLogin').onclick=go;$('loginPin').onkeydown=e=>{if(e.key==='Enter')go()}}
 function createAccount(){if(CLOUD){overlay(`<div class="center"><div class="big-emoji">👩‍🏫</div><h2>حسابات الطلبة تُنشأ من المعلمة</h2>${G('Your teacher creates student accounts.')}<p>اطلب من معلمتك رمز الطالب والرقم السري، ثم اضغط «دخول الطالب».</p>${G('Ask your teacher for your student code and PIN, then tap Student login.')}<div class="form-actions center-row"><button class="big-btn ghost" id="cancelOverlay">إغلاق</button><button class="big-btn primary" id="goLogin">دخول الطالب ▶</button></div></div>`);$('cancelOverlay').onclick=closeOverlay;$('goLogin').onclick=startLogin;return}overlay(`<h2>حساب طالب جديد</h2>${G('New student')}<div class="form-field"><label for="newName">اسم الطالب <small dir="ltr">Name</small></label><input id="newName"></div><div class="form-row"><div class="form-field"><label for="newGrade">الصف <small dir="ltr">Grade</small></label><select id="newGrade">${[1,2,3,4,5,6].map(g=>`<option value="${g}">${g}</option>`).join('')}</select></div><div class="form-field"><label for="newSection">الشعبة</label><input id="newSection" value="أ"></div></div><div class="form-field"><label for="newSupport">لغة المساعدة <small dir="ltr">Help language</small></label><select id="newSupport"><option value="en">English — تظهر ترجمة ونطق لاتيني</option><option value="off">بدون — عربي فقط</option></select></div><div class="form-field"><label for="newPin">رقم سري من 4 أرقام <small dir="ltr">4-digit PIN</small></label><input id="newPin" inputmode="numeric" maxlength="4" placeholder="اتركه فارغًا ليُنشأ تلقائيًا" dir="ltr"></div><div class="form-actions"><button class="big-btn ghost" id="cancelOverlay">إلغاء</button><button class="big-btn gold" id="doCreate">إنشاء وبدء الاختبار</button></div>`);$('cancelOverlay').onclick=closeOverlay;$('doCreate').onclick=()=>{const name=$('newName').value.trim();if(!name)return flash('اكتب اسم الطالب');let pin=$('newPin').value.trim();if(pin&&!/^\d{4}$/.test(pin))return flash('الرقم السري يجب أن يكون 4 أرقام');const s=blankStudent(name,$('newGrade').value,$('newSection').value.trim(),pin,$('newSupport').value);db.students.push(s);session={role:'student',id:s.id};persist();$('overlayCard').innerHTML=`<div class="center"><div class="big-emoji">🎉</div><h2>تم إنشاء الحساب</h2>${G('Your account is ready. Write down your code and PIN.')}<div class="id-card"><span>رمز الطالب<b dir="ltr">${esc(s.code)}</b></span><span>الرقم السري<b dir="ltr">${esc(s.pin)}</b></span></div><button class="big-btn primary" id="startDiagNow">ابدأ الاختبار القصير ▶</button></div>`;$('startDiagNow').onclick=()=>{closeOverlay();startDiagnostic()}}}
-function afterLogin(){const s=current();logActivity(s);persist();refreshHud();applyLearnerPrefs();if(!s.diagnosticDone)startDiagnostic();else{prepareWorld();show('worldScreen')}}
+async function afterLogin(){
+ let s=current();
+ if(!s&&CLOUD&&cloud.token&&cloud.role==='student'){
+  try{const srv=await rpc('student_get',{p_token:cloud.token});s=mergeStudent(srv);session={role:'student',id:s.id};persist()}catch(e){flash('تعذر استرجاع الرحلة الآن. جرّب تسجيل الدخول مرة أخرى.');return startLogin()}
+ }
+ if(!s)return startLogin();
+ logActivity(s);persist();refreshHud();applyLearnerPrefs();
+ if(!s.diagnosticDone)return startDiagnostic();
+ prepareWorld();show('worldScreen')
+}
 
 /* ================= عنصر سؤال عام (للتشخيص والقياس النهائي) ================= */
 function renderItem(host,item,onAnswer){
@@ -1227,7 +1236,17 @@ function launchSmartPractice(){const s=current();if(!s)return;if(!s.diagnosticDo
 function navTab(tab){if(tab==='profile')showProfile();else if(tab==='practice')launchSmartPractice();else if(tab==='lab')openLab('worldScreen');else if(tab==='write')openWorkshop();else if(tab==='admin')adminLogin()}
 function bindToggles(){document.querySelectorAll('[data-toggle="help"]').forEach(b=>b.onclick=toggleHelp);document.querySelectorAll('[data-toggle="tl"]').forEach(b=>b.onclick=toggleTranslit)}
 function logout(){if(CLOUD&&cloud.token){cloudLogout();applyLearnerPrefs();show('startScreen');refreshResume();return}session=null;persist();applyLearnerPrefs();show('startScreen');refreshResume()}
-function refreshResume(){const box=$('resumeBox');const s=current();if(s){box.classList.remove('hidden');box.innerHTML=`مرحبًا <b>${esc(s.name)}</b> 👋 <button class="big-btn ghost" id="resumeBtn">متابعة رحلتي</button>`;$('resumeBtn').onclick=afterLogin}else box.classList.add('hidden')}
+function refreshResume(){
+ const box=$('resumeBox'),s=current();
+ if(!s){box.classList.add('hidden');return}
+ box.classList.remove('hidden');
+ box.innerHTML=`<div class="resume-copy">مرحبًا <b>${esc(s.name)}</b> 👋</div><button type="button" class="big-btn ghost resume-journey-btn" id="resumeBtn">متابعة رحلتي ▶</button>`;
+ const go=e=>{if(e){e.preventDefault();e.stopPropagation()}afterLogin()};
+ const btn=$('resumeBtn');
+ btn.onclick=go;
+ btn.addEventListener('touchend',go,{passive:false});
+ box.onclick=e=>{if(e.target===box||e.target.closest('.resume-copy'))go(e)};
+}
 function voiceBanner(){const b=$('voiceBanner');if(!b)return;b.classList.toggle('hidden',hasArabicVoice()||Object.keys(db.audioLibrary||{}).length>20)}
 function bind(){$('loginBtn').onclick=startLogin;$('createBtn').onclick=createAccount;$('labStartBtn').onclick=()=>openLab('startScreen');$('adminOpenBtn').onclick=()=>isAdmin()?showAdmin():adminLogin();
  $('backWorldBtn').onclick=()=>{prepareWorld();show('worldScreen')};$('labBackBtn').onclick=()=>{if(labReturn==='worldScreen'&&current()){prepareWorld();show('worldScreen')}else if(labReturn==='profileScreen'&&current())showProfile();else if(labReturn==='writeScreen'&&current())openWorkshop();else if(labReturn==='checkScreen'&&current())openLetterCheck();else show('startScreen')};
