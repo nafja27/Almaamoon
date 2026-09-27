@@ -690,3 +690,58 @@
   font-size:20px!important;
  }
 }
+
+
+/* V36.19 — resume inside actions: avoids iOS sticky/scroll hitbox issue */
+#startScreen .v36-actions #resumeBox{
+ order:-1!important;
+ margin:0 0 2px!important;
+ padding:0!important;
+ width:100%!important;
+ background:transparent!important;
+ border:0!important;
+ box-shadow:none!important;
+ overflow:visible!important;
+ position:relative!important;
+ z-index:100!important;
+ pointer-events:auto!important;
+}
+#startScreen .v36-actions #resumeBox.hidden{display:none!important}
+#startScreen .resume-journey-btn{
+ width:100%!important;
+ min-height:72px!important;
+ padding:10px 16px!important;
+ border-radius:18px!important;
+ border:3px solid #bde8ff!important;
+ border-bottom:6px solid #07528f!important;
+ background:linear-gradient(180deg,#2b9de8,#0870bd)!important;
+ color:#fff!important;
+ box-shadow:0 6px 0 #06477c,0 10px 18px rgba(0,58,105,.22)!important;
+ display:flex!important;
+ flex-direction:column!important;
+ align-items:center!important;
+ justify-content:center!important;
+ gap:2px!important;
+ font-size:15px!important;
+ font-weight:900!important;
+ line-height:1.25!important;
+ pointer-events:auto!important;
+ touch-action:manipulation!important;
+ -webkit-user-select:none!important;
+ user-select:none!important;
+ position:relative!important;
+ z-index:101!important;
+}
+#startScreen .resume-journey-btn strong{
+ display:block!important;
+ font-size:22px!important;
+ color:#fff!important;
+}
+#startScreen .resume-journey-btn.loading{opacity:.78!important}
+#startScreen .v36-actions{pointer-events:auto!important}
+#startScreen .v36-actions>*{pointer-events:auto!important}
+
+@media(max-width:760px){
+ #startScreen .resume-journey-btn{min-height:76px!important}
+ #startScreen .resume-journey-btn strong{font-size:23px!important}
+}
