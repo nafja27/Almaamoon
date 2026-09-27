@@ -215,12 +215,30 @@ function createAccount(){if(CLOUD){overlay(`<div class="center"><div class="big-
 async function afterLogin(){
  let s=current();
  if(!s&&CLOUD&&cloud.token&&cloud.role==='student'){
-  try{const srv=await rpc('student_get',{p_token:cloud.token});s=mergeStudent(srv);session={role:'student',id:s.id};persist()}catch(e){flash('تعذر استرجاع الرحلة الآن. جرّب تسجيل الدخول مرة أخرى.');return startLogin()}
+  try{
+   const srv=await rpc('student_get',{p_token:cloud.token});
+   s=mergeStudent(srv);session={role:'student',id:s.id};persist()
+  }catch(e){
+   flash('تعذر استرجاع الرحلة الآن. سجّل الدخول مرة أخرى.');
+   return startLogin()
+  }
  }
  if(!s)return startLogin();
+ ensureLearnerShape(s);
+ if(!Number.isFinite(+s.stage))s.stage=0;
+ s.stage=Math.max(0,Math.min(8,+s.stage||0));
  logActivity(s);persist();refreshHud();applyLearnerPrefs();
  if(!s.diagnosticDone)return startDiagnostic();
- prepareWorld();show('worldScreen')
+
+ /* افتح الشاشة أولًا حتى لا يبدو الزر معطّلًا لو حصل خطأ في تجهيز الخريطة */
+ show('worldScreen');
+ try{
+  prepareWorld();
+ }catch(err){
+  console.error('prepareWorld failed',err);
+  flash('تم فتح الرحلة. جارٍ إعادة تجهيز الخريطة…');
+  later(()=>{try{prepareWorld()}catch(e){console.error(e)}},180)
+ }
 }
 
 /* ================= عنصر سؤال عام (للتشخيص والقياس النهائي) ================= */
@@ -1237,15 +1255,16 @@ function navTab(tab){if(tab==='profile')showProfile();else if(tab==='practice')l
 function bindToggles(){document.querySelectorAll('[data-toggle="help"]').forEach(b=>b.onclick=toggleHelp);document.querySelectorAll('[data-toggle="tl"]').forEach(b=>b.onclick=toggleTranslit)}
 function logout(){if(CLOUD&&cloud.token){cloudLogout();applyLearnerPrefs();show('startScreen');refreshResume();return}session=null;persist();applyLearnerPrefs();show('startScreen');refreshResume()}
 function refreshResume(){
- const box=$('resumeBox'),s=current();
+ const box=$('resumeBox'),s=current(),actions=document.querySelector('#startScreen .v36-actions');
+ if(!box)return;
  if(!s){box.classList.add('hidden');return}
+ if(actions&&box.parentElement!==actions)actions.appendChild(box);
  box.classList.remove('hidden');
- box.innerHTML=`<div class="resume-copy">مرحبًا <b>${esc(s.name)}</b> 👋</div><button type="button" class="big-btn ghost resume-journey-btn" id="resumeBtn">متابعة رحلتي ▶</button>`;
- const go=e=>{if(e){e.preventDefault();e.stopPropagation()}afterLogin()};
+ box.innerHTML=`<button type="button" class="big-btn resume-journey-btn" id="resumeBtn"><span>👋 مرحبًا ${esc(s.name)}</span><strong>متابعة رحلتي ▶</strong></button>`;
+ const go=e=>{if(e){e.preventDefault();e.stopPropagation()}const b=$('resumeBtn');if(b){b.disabled=true;b.classList.add('loading');b.querySelector('strong').textContent='جاري فتح رحلتك…'}Promise.resolve(afterLogin()).finally(()=>{const x=$('resumeBtn');if(x){x.disabled=false;x.classList.remove('loading')}})};
  const btn=$('resumeBtn');
- btn.onclick=go;
- btn.addEventListener('touchend',go,{passive:false});
- box.onclick=e=>{if(e.target===box||e.target.closest('.resume-copy'))go(e)};
+ btn.addEventListener('click',go);
+ btn.addEventListener('pointerup',e=>{if(e.pointerType==='touch')go(e)});
 }
 function voiceBanner(){const b=$('voiceBanner');if(!b)return;b.classList.toggle('hidden',hasArabicVoice()||Object.keys(db.audioLibrary||{}).length>20)}
 function bind(){$('loginBtn').onclick=startLogin;$('createBtn').onclick=createAccount;$('labStartBtn').onclick=()=>openLab('startScreen');$('adminOpenBtn').onclick=()=>isAdmin()?showAdmin():adminLogin();
