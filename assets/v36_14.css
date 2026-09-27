@@ -745,3 +745,168 @@
  #startScreen .resume-journey-btn{min-height:76px!important}
  #startScreen .resume-journey-btn strong{font-size:23px!important}
 }
+
+
+/* =========================================================
+   V36.20 — clean two-column start layout
+   Desktop: real panel + full map, no blurred empty sidebars.
+   ========================================================= */
+@media(min-width:761px){
+  #startScreen.v36-start{
+    width:100vw!important;
+    height:100vh!important;
+    min-height:680px!important;
+    overflow:hidden!important;
+    background:linear-gradient(180deg,#0b7898 0%,#075f82 100%)!important;
+  }
+
+  #startScreen .v36-home{
+    width:100vw!important;
+    height:100vh!important;
+    min-height:680px!important;
+    overflow:hidden!important;
+    margin:0!important;
+    padding:0!important;
+  }
+
+  /* Left control card */
+  #startScreen .v36-intro-card{
+    left:28px!important;
+    top:96px!important;
+    bottom:22px!important;
+    width:410px!important;
+    min-width:410px!important;
+    max-width:410px!important;
+    max-height:calc(100vh - 118px)!important;
+    z-index:12!important;
+  }
+
+  /* Map gets its own real column instead of being a contained image
+     inside the whole viewport. */
+  #startScreen .v36-map-card{
+    position:absolute!important;
+    top:84px!important;
+    right:18px!important;
+    bottom:18px!important;
+    left:458px!important;
+    width:auto!important;
+    height:auto!important;
+    margin:0!important;
+    border-radius:28px!important;
+    border:4px solid rgba(255,255,255,.82)!important;
+    box-shadow:0 16px 38px rgba(0,31,63,.28)!important;
+    overflow:hidden!important;
+    background:#0c7395!important;
+    isolation:isolate!important;
+  }
+
+  /* Remove the fake blurred extension that created the empty-looking
+     bands at the screen edges. */
+  #startScreen .v36-map-card::before{
+    display:none!important;
+    content:none!important;
+  }
+
+  #startScreen .v36-map-card::after{
+    z-index:2!important;
+    background:
+      linear-gradient(90deg,rgba(4,39,67,.08),transparent 18%),
+      linear-gradient(180deg,rgba(4,39,67,.05),transparent 14%,transparent 84%,rgba(4,39,67,.08))!important;
+  }
+
+  #startScreen .v36-map-card img{
+    position:absolute!important;
+    inset:0!important;
+    width:100%!important;
+    height:100%!important;
+    max-width:none!important;
+    max-height:none!important;
+    object-fit:cover!important;
+    object-position:center center!important;
+    transform:none!important;
+    filter:saturate(1.06) contrast(1.02)!important;
+    display:block!important;
+  }
+
+  #startScreen .v36-map-label{
+    top:22px!important;
+    right:22px!important;
+    z-index:5!important;
+  }
+
+  /* Header stays clean above both columns */
+  #startScreen .v36-header{
+    inset:14px 24px auto 24px!important;
+  }
+
+  /* Keep all controls compact enough to fit without shrinking the card */
+  #startScreen .v36-intro-top{
+    min-height:220px!important;
+    padding-top:12px!important;
+  }
+  #startScreen .v36-mascot-box{
+    width:150px!important;
+    height:210px!important;
+  }
+  #startScreen .v36-copy h1{
+    font-size:35px!important;
+  }
+  #startScreen .v36-step{
+    min-height:58px!important;
+  }
+  #startScreen .v36-actions{
+    padding-top:8px!important;
+    padding-bottom:12px!important;
+    gap:8px!important;
+  }
+  #startScreen .v36-start-btn{
+    min-height:54px!important;
+    font-size:20px!important;
+  }
+  #startScreen .resume-journey-btn{
+    min-height:62px!important;
+  }
+}
+
+/* Slightly tighter two-column geometry for 761–1100px */
+@media(min-width:761px) and (max-width:1100px){
+  #startScreen .v36-intro-card{
+    left:16px!important;
+    width:350px!important;
+    min-width:350px!important;
+    max-width:350px!important;
+  }
+  #startScreen .v36-map-card{
+    left:382px!important;
+    right:12px!important;
+  }
+  #startScreen .v36-mascot-box{
+    width:132px!important;
+    height:190px!important;
+  }
+  #startScreen .v36-copy{
+    padding-left:104px!important;
+  }
+  #startScreen .v36-copy h1{
+    font-size:31px!important;
+  }
+}
+
+/* Phone keeps the vertical layout, but image fills its own card cleanly. */
+@media(max-width:760px){
+  #startScreen .v36-map-card::before{
+    display:none!important;
+    content:none!important;
+  }
+  #startScreen .v36-map-card{
+    background:#0b7898!important;
+  }
+  #startScreen .v36-map-card img{
+    width:100%!important;
+    height:100%!important;
+    object-fit:cover!important;
+    object-position:center center!important;
+    transform:none!important;
+    filter:saturate(1.04) contrast(1.02)!important;
+  }
+}
