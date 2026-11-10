@@ -833,10 +833,18 @@ function actHunt(ctx){const t=ctx.remedial?0:tierFor('letters');const rounds=ctx
  draw()}
 
 /* 🧱 ركّب الصوت: اختر الحرف ثم الحركة لتكوّن المقطع الذي سمعته */
-function actSyllable(ctx){const t=ctx.remedial?0:tierFor('letters');const n=ctx.remedial?3:6;const letters=freshSample('syl'+t,HUNT_SETS[t],n,!ctx.remedial);
+function actSyllable(ctx){const t=ctx.remedial?0:tierFor('letters');const n=ctx.remedial?3:6;
+ /*PLUS V38.13: نتجنب تكرار نفس الحرف بين الجولات المتتالية (كان «ثِي» يتكرر في أول كل جولة)،
+   ولا يأتي حرفان متشابهان (ب/ت/ث) وراء بعض */
+ const hk='almaamoon_sylhist_'+((current()&&(current().code||current().id||current().name))||'x');let hist=[];try{hist=JSON.parse(localStorage.getItem(hk)||'[]')}catch{}
+ const pool=HUNT_SETS[t];const avoid=new Set(hist.slice(0,Math.min(hist.length,Math.max(0,pool.length-n))));
+ let letters=freshSample('syl'+t,pool.filter(x=>!avoid.has(x)).length>=n?pool.filter(x=>!avoid.has(x)):pool,n,!ctx.remedial);
+ {const out=[],rest=[...letters];while(rest.length){const prev=out[out.length-1];let k=rest.findIndex(x=>!prev||(x!==prev&&!confusableOf(prev).includes(x)));if(k<0)k=0;out.push(rest.splice(k,1)[0])}letters=out}
+ try{localStorage.setItem(hk,JSON.stringify([...letters,...hist.filter(x=>!letters.includes(x))].slice(0,20)))}catch{}
+ const lastV={};
  const V=[['َ','فَتْحَة','a'],['ِ','كَسْرَة','i'],['ُ','ضَمَّة','u']];const LONG=[['َا','أَلِف مَدّ','aa'],['ِي','يَاء مَدّ','ii'],['ُو','وَاو مَدّ','uu']];
  let i=0,score=0;const [ti,te]=mTitle();
- function draw(){clearTimers();const l=letters[i];const useLong=t>=3&&Math.random()<.5;const vs=useLong?LONG:V;const v=vs[Math.floor(Math.random()*3)];const target=sylOf(l,v[0]);
+ function draw(){clearTimers();const l=letters[i];const useLong=t>=3&&Math.random()<.5;const vs=useLong?LONG:V;let vi=Math.floor(Math.random()*3);if(lastV.k===(useLong?'L':'S')+vi)vi=(vi+1+Math.floor(Math.random()*2))%3;lastV.k=(useLong?'L':'S')+vi;const v=vs[vi];const target=sylOf(l,v[0]);
   const lopts=shuffle([l,...shuffle(confusableOf(l).length?confusableOf(l):HUNT_SETS[t].filter(x=>x!==l)).slice(0,ctx.remedial?1:2)]);
   let pl=null,pv=null,tries=0,done=false;const b=board();
   b.innerHTML=activityHead(ti,te,i,n,tierTag('letters',ctx))+`<p class="prompt-ar">اسْتَمِعْ، ثُمَّ اخْتَرِ الحَرْفَ وَالحَرَكَةَ.</p>${G('Listen, then choose the letter and the vowel.')}<div class="sound-actions"><button class="control-btn" data-hear>🔊 استمع</button><button class="control-btn" data-slow>🐢 ببطء</button></div><div class="syl-preview" data-prev><span>؟</span></div><div class="syl-row"><span class="syl-label">الحَرْف ${G('Letter')}</span><div class="syl-opts" data-letters>${lopts.map(x=>`<button class="syl-tile" data-l="${x}">${x}</button>`).join('')}</div></div><div class="syl-row"><span class="syl-label">الحَرَكَة ${G('Vowel')}</span><div class="syl-opts" data-vowels>${vs.map((x,k)=>`<button class="syl-tile vowel" data-v="${k}"><b>◌${x[0]}</b><small>${x[1]}</small></button>`).join('')}</div></div><div class="feedback" data-feed></div><div class="after-actions" data-after></div>`;

@@ -166,3 +166,22 @@ body.plus-talking .screen.active .plus-mascot{animation:plusTalk .32s ease-in-ou
    صار كحليًا غامقًا على قرص فاتح، بحجم أكبر */
 #stageScreen .hunt-letter{background:radial-gradient(circle at 35% 28%,#ffffff 0 35%,#fff3c4 70%,#ffd84d 100%)!important;color:#0b3a66!important;font-weight:700!important;text-shadow:none!important;font-size:52px!important;line-height:1.6!important;display:grid!important;place-items:center!important;padding:0!important;overflow:hidden}
 @media (max-width:760px){#stageScreen .hunt-letter{font-size:36px!important}}
+
+/* V38.12: لا فراغ فوق المحتوى — يبدأ من الأعلى مباشرة، واللوحة أقصر في الشاشات المتوسطة */
+@media (min-width:901px){
+ #startScreen .h38-main{align-items:start!important}
+ #startScreen .h38-map{align-items:flex-start}
+ #startScreen .h38-mapbox{width:min(100%,calc((100vh - 110px) * 1.6876))}
+}
+@media (min-width:901px) and (max-height:760px){
+ #startScreen .h38-copy p{display:none}
+ #startScreen .h38-hero{grid-template-columns:70px 1fr}
+ #startScreen .h38-mascot{width:70px;height:92px}
+ #startScreen .h38-copy h1{font-size:24px;margin:4px 0 0}
+ #startScreen .h38-stops li{min-height:44px;padding:4px 6px 4px 4px}
+ #startScreen .h38-actions .h38-primary,#startScreen .h38-actions .resume-box .big-btn{min-height:48px!important;font-size:19px!important}
+ #startScreen .h38-actions .resume-box .big-btn strong{font-size:17px}
+ #startScreen .h38-actions .big-btn{min-height:42px!important}
+}
+@media (min-width:901px){#startScreen .h38-main{flex:0 1 auto}#startScreen .h38-credit{margin-top:4px}}
+#startScreen .h38-actions .resume-box .big-btn{padding:6px 10px!important;min-height:56px!important}

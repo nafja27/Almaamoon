@@ -32,7 +32,7 @@ export default async(request)=>{
      /* V38: تقليل ضوضاء الصف، وعدم قطع كلام المأمون عند سماع أي صوت */
      noise_reduction:{type:'far_field'},
      turn_detection:{type:'semantic_vad',eagerness:'low',create_response:true,interrupt_response:false},
-     transcription:{model:'gpt-4o-mini-transcribe',language:'ar'}
+     transcription:{model:'gpt-4o-transcribe',language:'ar',prompt:'طفل يتعلم العربية ينطق كلمات قصيرة أو مقاطع مثل: حوت، باب، قلم، بَا، بُو، بِي. اكتب ما قاله بالحروف العربية فقط.'}
     },
     output:{voice:'marin'}
    }
@@ -47,6 +47,11 @@ export default async(request)=>{
   };
   let {r:apiResponse,text:body}=await call(session);
   /* V38: إذا رفضت الخدمة الإعدادات الجديدة نعود للإعدادات الأصلية حتى لا يتعطل المساعد */
+  if(apiResponse.status===400){
+   console.error('Realtime V38.8 transcription settings rejected, retrying with mini transcribe:',body.slice(0,300));
+   const s2=JSON.parse(JSON.stringify(session));s2.audio.input.transcription={model:'gpt-4o-mini-transcribe',language:'ar'};
+   ({r:apiResponse,text:body}=await call(s2));
+  }
   if(apiResponse.status===400){
    console.error('Realtime V38 settings rejected, retrying with basic session:',body.slice(0,300));
    ({r:apiResponse,text:body}=await call({type:'realtime',model:session.model,instructions:INSTRUCTIONS,audio:{output:{voice:'marin'}}}));
