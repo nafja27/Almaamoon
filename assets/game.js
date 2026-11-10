@@ -939,20 +939,24 @@ function fitMap(){
    نقاط المهمة تحيط بالمعلم نفسه، والمأمون يقف على المهمة الحالية. */
 function nodePos(i){const n=document.querySelector(`.station-node[data-stage="${i}"]`);return n?{x:parseFloat(n.style.getPropertyValue('--x')),y:parseFloat(n.style.getPropertyValue('--y'))}:null}
 function clampMap(v,min=4,max=96){return Math.max(min,Math.min(max,v))}
+/*PLUS V38.4: نقاط المهام توضع على طريق الخرز المرسوم بين الجزر (لا متجمعة حول الجزيرة).
+  كل محطة لها جزء من الطريق يخرج منها؛ الإحداثيات نسبة مئوية من صورة bahrain-map-hd.webp */
+const MAP_ROUTES={
+ 0:[[46.6,20],[43.4,20.8],[40.3,22.4],[37.3,25],[35,26.4],[33.4,27.4]],
+ 1:[[43.8,44.3],[41.3,46.1],[38.8,47.8],[36.3,49.6],[33.8,51.4],[31.6,52.7],[29.4,54.3]],
+ 2:[[26.9,34.6],[28.8,35.5],[30.9,36.7],[33.1,38],[35.3,38.8],[36.9,39.2]],
+ 3:[[21.9,64.1],[24.4,65.9],[26.9,66.7],[29.4,66.8],[31.9,66.5],[34.4,65.9],[36.9,65.2]],
+ 4:[[67.2,25.1],[65.3,27.2],[63.4,29.5],[61.9,32.2],[60.3,34.3],[58.8,35.7]],
+ 5:[[80.6,55.7],[81.1,58.5],[80.8,61.4],[80,63.8]],
+ 6:[[58.4,68.4],[60.6,69.8],[62.5,70.9],[64.4,71.4],[66.3,71.7]],
+ 7:[[69.4,75.9],[67.5,77.8],[65.3,79.6],[63.1,81.2],[60.9,82.3],[58.8,83]]
+};
+function routePoint(pts,f){const seg=[];let L=0;for(let j=1;j<pts.length;j++){const d=Math.hypot(pts[j][0]-pts[j-1][0],(pts[j][1]-pts[j-1][1])*.6);seg.push(d);L+=d}
+ let t=f*L;for(let j=1;j<pts.length;j++){if(t<=seg[j-1]||j===pts.length-1){const u=seg[j-1]?Math.min(1,t/seg[j-1]):0;return{x:pts[j-1][0]+(pts[j][0]-pts[j-1][0])*u,y:pts[j-1][1]+(pts[j][1]-pts[j-1][1])*u}}t-=seg[j-1]}return{x:pts[0][0],y:pts[0][1]}}
 function dotPos(i,k,n){
- const a=nodePos(i);if(!a)return{x:50,y:50};
- const patterns={
-  1:[[0,6.4]],
-  2:[[-3.4,6.1],[3.4,6.1]],
-  3:[[-4.8,5.6],[0,7.4],[4.8,5.6]],
-  4:[[-5.8,5.0],[-2.0,7.2],[2.0,7.2],[5.8,5.0]]
- };
- const P=patterns[n]||[...Array(n)].map((_,q)=>[(q-(n-1)/2)*2.8,6.2+Math.abs(q-(n-1)/2)*.55]);
- let [dx,dy]=P[k]||[0,6.4];
- if(a.y>75)dy=-Math.abs(dy);
- if(a.x<22)dx+=2.2;
- if(a.x>78)dx-=2.2;
- return{x:clampMap(a.x+dx),y:clampMap(a.y+dy,5,94)}
+ const r=MAP_ROUTES[i];
+ if(r){const f=n===1?.5:.16+.76*k/(n-1);return routePoint(r,f)}
+ const a=nodePos(i);if(!a)return{x:50,y:50};return{x:clampMap(a.x),y:clampMap(a.y+6.4,5,94)}
 }
 function setExplorerPoint(p){
  const ex=$('mamounTokenWrap')||$('explorer');if(!ex||!p)return;

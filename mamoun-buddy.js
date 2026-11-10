@@ -28,7 +28,7 @@ function contextText(){
  else bits.push('الطالب في الصفحة الرئيسية لمغامرة المأمون.');
  return bits.join(' ');
 }
-function baseInstruction(){return `أنت شخصية "المأمون"، رفيق تعليمي لطفل يتعلم العربية كلغة ثانية داخل منصة مغامرة المأمون. تحدث بالعربية الفصحى المبسطة فقط. لا تستخدم أي لهجة عامية مطلقًا. قل "أهلًا يا بطل" ولا تقل "هلا". استخدم جملًا قصيرة وواضحة ومشجعة، غالبًا جملة أو جملتين فقط. لا تسأل الطفل عن اسمه أو عمره أو مدرسته أو موقعه أو أي معلومة شخصية. لا تناقش موضوعات خارج تعلم العربية؛ أعد الحوار بلطف إلى الحروف والكلمات والجمل والقراءة. افهم الإنجليزية إذا احتاج الطفل إليها، لكن اجعل ردك الأساسي بالعربية، ويمكنك إعطاء كلمة إنجليزية قصيرة جدًا عند الضرورة. عند الخطأ قل مثلًا: "أحسنت المحاولة. استمع مرة أخرى ثم حاول." عند النجاح قل مثلًا: "أحسنت! نطقك واضح." استخدم نبرة دافئة ومرحة وبطيئة نسبيًا تناسب طفلًا في المرحلة الابتدائية. السياق الحالي في المنصة: ${contextText()}`}
+function baseInstruction(){return `أنت شخصية "المأمون"، رفيق تعليمي لطفل يتعلم العربية كلغة ثانية داخل منصة مغامرة المأمون. تحدث بالعربية الفصحى المبسطة فقط. لا تستخدم أي لهجة عامية مطلقًا. رحّب بالطفل مرة واحدة فقط في أول الجلسة بقول "أهلًا يا بطل"، وبعدها لا تكرر أي تحية أبدًا (لا "أهلًا" ولا "يا بطل" في بداية ردودك)، بل ادخل في الرد مباشرة. لا تقل "هلا". استخدم جملًا قصيرة وواضحة ومشجعة، غالبًا جملة أو جملتين فقط. لا تسأل الطفل عن اسمه أو عمره أو مدرسته أو موقعه أو أي معلومة شخصية. لا تناقش موضوعات خارج تعلم العربية؛ أعد الحوار بلطف إلى الحروف والكلمات والجمل والقراءة. افهم الإنجليزية إذا احتاج الطفل إليها، لكن اجعل ردك الأساسي بالعربية، ويمكنك إعطاء كلمة إنجليزية قصيرة جدًا عند الضرورة. عند الخطأ قل مثلًا: "أحسنت المحاولة. استمع مرة أخرى ثم حاول." عند النجاح قل مثلًا: "أحسنت! نطقك واضح." استخدم نبرة دافئة ومرحة وبطيئة نسبيًا تناسب طفلًا في المرحلة الابتدائية. السياق الحالي في المنصة: ${contextText()}`}
 
 const launcher=el('button','mamoun-buddy-launcher','<span class="mb-badge" id="mbAiBadge">AI</span><span class="mb-label" id="mbLauncherLabel">تحدّث مع المأمون AI</span><img src="assets/mascot.webp?v=365" alt="المأمون">');
 launcher.type='button';launcher.setAttribute('aria-label','تحدّث مع المأمون');
@@ -48,28 +48,50 @@ backdrop.innerHTML=`<section class="mamoun-buddy-panel" role="dialog" aria-modal
 document.body.append(launcher,backdrop);
 const $=id=>document.getElementById(id),avatar=$('mbAvatar'),status=$('mbSceneStatus'),transcript=$('mbTranscript'),start=$('mbStart'),mute=$('mbMute'),contextBtn=$('mbContext'),audio=$('mbAudio');audioEl=audio;
 const aiBadge=$('mbAiBadge'),launcherLabel=$('mbLauncherLabel');
+/* V38: نضبط نسبة الصورة ومكان الفم حسب الصورة المعروضة فعلًا */
+(function(){const img=$('mbBuddyImage');if(!img)return;const fit=()=>{if(!img.naturalWidth)return;avatar.style.aspectRatio=img.naturalWidth+'/'+img.naturalHeight;
+ const full=/mamoun-buddy\.png/.test(img.currentSrc||img.src);
+ const m=full?{mx:'56.1%',my:'18.85%',mwid:'8.2%',mh:'1.15%'}:{mx:'50.3%',my:'18.7%',mwid:'5.4%',mh:'1.5%'};
+ for(const k in m)avatar.style.setProperty('--'+k,m[k])};img.addEventListener('load',fit);fit()})();
 async function checkAiReady(){
- try{const r=await fetch(STATUS_API,{cache:'no-store'});const j=await r.json();const ok=!!j.ok;launcher.classList.toggle('ai-ready',ok);launcher.classList.toggle('ai-off',!ok);if(aiBadge)aiBadge.textContent=ok?'AI ✓':'AI !';if(launcherLabel)launcherLabel.textContent=ok?'تحدّث مع المأمون AI':'المأمون AI يحتاج تفعيل';return ok}catch{launcher.classList.add('ai-off');if(aiBadge)aiBadge.textContent='AI !';return false}}
+ /* V36.21: عند التشغيل المحلي (بدون Netlify) لا توجد خدمة AI، فنخفي زر المحادثة بدل أن يظهر للطالب زر لا يعمل */
+ const setAvail=ok=>{document.body.classList.toggle('mamoun-ai-unavailable',!ok);const h=document.getElementById('heroAiBtn');if(h){if(ok)h.style.removeProperty('display');else h.style.setProperty('display','none','important')}};
+ try{const r=await fetch(STATUS_API,{cache:'no-store'});const j=await r.json();const ok=!!j.ok;setAvail(ok);launcher.classList.toggle('ai-ready',ok);launcher.classList.toggle('ai-off',!ok);if(aiBadge)aiBadge.textContent=ok?'AI ✓':'AI !';if(launcherLabel)launcherLabel.textContent=ok?'تحدّث مع المأمون AI':'المأمون AI يحتاج تفعيل';return ok}catch{setAvail(false);launcher.classList.add('ai-off');if(aiBadge)aiBadge.textContent='AI !';return false}}
 checkAiReady();window.addEventListener('maamoon-ai-voice',e=>{const ok=!!e.detail?.ok;launcher.classList.toggle('ai-ready',ok);launcher.classList.toggle('ai-off',!ok);if(aiBadge)aiBadge.textContent=ok?'AI ✓':'AI !'});
 
 
 function setAvatar(mode){avatar.classList.remove('talking','listening','thinking');if(mode)avatar.classList.add(mode)}
 function setStatus(text,kind=''){status.className='mb-scene-status'+(kind?' '+kind:'');status.querySelector('span').textContent=text}
-function addMsg(who,text){if(!text||!text.trim())return;const m=el('div','mb-msg '+who,safe(text.trim()));transcript.appendChild(m);transcript.scrollTop=transcript.scrollHeight}
+function addMsg(who,text){
+ if(!text||!text.trim())return;
+ /* V36.15 — keep the child focused on the current exchange instead of stacking every turn downward */
+ if(who==='child'){
+  transcript.querySelectorAll('.mb-msg.child,.mb-msg.mamoun').forEach(n=>n.remove());
+ }else if(who==='mamoun'){
+  transcript.querySelectorAll('.mb-msg.mamoun').forEach(n=>n.remove());
+ }else if(who==='system'){
+  transcript.querySelectorAll('.mb-msg.system').forEach(n=>n.remove());
+ }
+ const m=el('div','mb-msg '+who,safe(text.trim()));
+ transcript.appendChild(m);
+ const msgs=[...transcript.querySelectorAll('.mb-msg')];
+ while(msgs.length>3){const n=msgs.shift();if(n&&n.parentNode)n.remove()}
+ requestAnimationFrame(()=>{transcript.scrollTop=0});
+}
 function clearWelcome(){const w=transcript.querySelector('.mb-welcome');if(w)w.remove()}
 function send(obj){if(dc?.readyState==='open')dc.send(JSON.stringify(obj))}
 function refreshContext(){if(!connected)return;send({type:'session.update',session:{instructions:baseInstruction()}})}
-function askContext(){if(!connected)return;refreshContext();send({type:'response.create',response:{instructions:`ساعد الطفل الآن في النشاط الظاهر. ${contextText()} أعط توجيهًا قصيرًا جدًا بالعربية الفصحى، ثم اسأله سؤالًا واحدًا بسيطًا مرتبطًا بالنشاط.`}})}
+function askContext(){if(!connected)return;refreshContext();send({type:'response.create',response:{instructions:`ساعد الطفل الآن في النشاط الظاهر، ولا تبدأ بأي تحية. ${contextText()} أعط توجيهًا قصيرًا جدًا بالعربية الفصحى، ثم اسأله سؤالًا واحدًا بسيطًا مرتبطًا بالنشاط.`}})}
 
 function onEvent(e){let ev;try{ev=JSON.parse(e.data)}catch{return}
  switch(ev.type){
   case 'session.created':
   case 'session.updated': break;
-  case 'input_audio_buffer.speech_started': setAvatar('listening');setStatus('أنا أستمع إليك…','listening');break;
-  case 'input_audio_buffer.speech_stopped': setAvatar('thinking');setStatus('أفكر في إجابتك…','live');break;
+  case 'input_audio_buffer.speech_started': if(avatar.classList.contains('talking'))break;setAvatar('listening');setStatus('أنا أستمع إليك…','listening');break;
+  case 'input_audio_buffer.speech_stopped': if(avatar.classList.contains('talking'))break;setAvatar('thinking');setStatus('أفكر في إجابتك…','live');break;
   case 'conversation.item.input_audio_transcription.completed':
     lastUser=ev.transcript||'';if(lastUser){clearWelcome();addMsg('child',lastUser)}break;
-  case 'response.created': setAvatar('thinking');setStatus('أفكر…','live');lastAssistant='';break;
+  case 'response.created': transcript.querySelectorAll('.mb-msg.mamoun').forEach(n=>n.remove());setAvatar('thinking');setStatus('أفكر…','live');lastAssistant='';break;
   case 'response.output_audio_transcript.delta':
     lastAssistant+=(ev.delta||'');setAvatar('talking');setStatus('المأمون يتحدث…','live');break;
   case 'response.output_audio_transcript.done':
@@ -419,6 +441,9 @@ function moveTo(target,{celebrateChange=true}={}){
   if(target.classList.contains('path-dot'))target.classList.add('current-checkpoint');
 
   const key=targetKey(target);
+  /* V36.21: إذا كان المأمون واقفًا على الهدف نفسه لا نغيّر شيئًا.
+     بدون هذا الشرط كان كل تحريك يطلق MutationObserver من جديد فيبقى المأمون «يركض» بلا توقف ويستهلك المعالج. */
+  if(key===lastKey&&wrap.style.left===p.x+'%'&&wrap.style.top===p.y+'%'&&target.classList.contains('path-dot')===target.classList.contains('current-checkpoint'))return;
   const changed=!!lastKey&&key!==lastKey;
 
   if(mood)mood.textContent=moodText(target);

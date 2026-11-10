@@ -1,9 +1,9 @@
-/* Maghamarat Al-Ma'moon V36.7 — interactive Ma'moon companion */
+/* Maghamarat Al-Ma'moon V36.10 — interactive Ma'moon AI companion */
 :root{--mb-navy:#123d67;--mb-blue:#19a7d8;--mb-gold:#e5aa21;--mb-green:#22b856;--mb-ink:#173d64}
-.mamoun-buddy-launcher{position:fixed;left:max(16px,env(safe-area-inset-left));bottom:max(18px,env(safe-area-inset-bottom));z-index:120;width:78px;height:78px;border:0;border-radius:50%;background:linear-gradient(180deg,#fff,#eaf8ff);box-shadow:0 14px 38px rgba(18,61,103,.28);cursor:pointer;padding:0;overflow:visible;display:grid;place-items:center;border:3px solid #fff;transition:transform .2s ease,box-shadow .2s ease}
+.mamoun-buddy-launcher{position:fixed;left:max(14px,env(safe-area-inset-left));top:clamp(110px,42vh,420px);z-index:120;width:78px;height:78px;border:0;border-radius:50%;background:linear-gradient(180deg,#fff,#eaf8ff);box-shadow:0 14px 38px rgba(18,61,103,.28);cursor:pointer;padding:0;overflow:visible;display:grid;place-items:center;border:3px solid #fff;transition:transform .2s ease,box-shadow .2s ease}
 .mamoun-buddy-launcher:hover{transform:translateY(-3px);box-shadow:0 18px 45px rgba(18,61,103,.34)}
 .mamoun-buddy-launcher img{height:96px;width:auto;position:absolute;bottom:0;left:50%;transform:translateX(-50%);filter:drop-shadow(0 6px 8px rgba(18,61,103,.18));pointer-events:none}
-.mamoun-buddy-launcher .mb-badge{position:absolute;right:-5px;top:-6px;background:#22b856;color:#fff;border:3px solid #fff;width:30px;height:30px;border-radius:50%;display:grid;place-items:center;font-size:15px;box-shadow:0 5px 12px rgba(0,0,0,.15)}
+.mamoun-buddy-launcher .mb-badge{position:absolute;right:-5px;top:-6px;background:#168ec0;color:#fff;border:3px solid #fff;width:30px;height:30px;border-radius:50%;display:grid;place-items:center;font-size:15px;box-shadow:0 5px 12px rgba(0,0,0,.15)}
 .mamoun-buddy-launcher .mb-label{position:absolute;left:88px;bottom:18px;background:#fff;color:var(--mb-navy);font-weight:900;font-size:14px;white-space:nowrap;padding:9px 12px;border-radius:14px;box-shadow:0 8px 22px rgba(18,61,103,.15);border:1px solid rgba(18,61,103,.09)}
 .mamoun-buddy-launcher .mb-label:before{content:'';position:absolute;left:-8px;top:50%;transform:translateY(-50%);border-width:7px 8px 7px 0;border-style:solid;border-color:transparent #fff transparent transparent}
 
@@ -16,7 +16,7 @@
 .mb-avatar-wrap{position:absolute;inset:68px 12px 0;display:flex;align-items:flex-end;justify-content:center;pointer-events:none}
 .mb-avatar{position:relative;height:min(88%,590px);aspect-ratio:682/1536;transform-origin:50% 92%;animation:mbIdle 4.4s ease-in-out infinite;filter:drop-shadow(0 20px 20px rgba(21,63,91,.22))}
 .mb-avatar img{height:100%;width:100%;object-fit:contain;display:block}
-.mb-mouth{position:absolute;left:50.2%;top:18.65%;width:7.2%;height:.45%;border-radius:999px;background:#6d2a24;transform:translate(-50%,-50%);opacity:0;box-shadow:inset 0 1px 0 rgba(255,255,255,.22)}
+.mb-mouth{position:absolute;left:50.25%;top:23.35%;width:6.8%;height:.38%;border-radius:999px;background:#7a3b32;transform:translate(-50%,-50%);transform-origin:center center;opacity:0;box-shadow:inset 0 1px 0 rgba(255,255,255,.24);pointer-events:none;z-index:3}
 .mb-avatar.talking{animation:mbTalkBody .48s ease-in-out infinite alternate}
 .mb-avatar.talking .mb-mouth{opacity:.94;animation:mbMouth .18s ease-in-out infinite alternate}
 .mb-avatar.listening{animation:mbListenBody 1s ease-in-out infinite alternate}
@@ -51,9 +51,34 @@
 @keyframes mbTalkBody{from{transform:translateY(0) scale(1)}to{transform:translateY(-4px) scale(1.012)}}
 @keyframes mbListenBody{from{transform:translateY(0) rotate(-.25deg)}to{transform:translateY(-3px) rotate(.5deg)}}
 @keyframes mbThink{0%,100%{transform:translateY(0) rotate(0)}50%{transform:translateY(-4px) rotate(-.8deg)}}
-@keyframes mbMouth{from{height:.35%;width:6.2%}to{height:1.1%;width:6.9%;border-radius:50%}}
+@keyframes mbMouth{from{height:.35%;width:6.2%;transform:translate(-50%,-50%) scaleY(.72)}to{height:1.05%;width:6.8%;transform:translate(-50%,-50%) scaleY(1.08);border-radius:46% 46% 55% 55%}}
 @keyframes mbPulse{0%{opacity:.75;transform:translate(-50%,-50%) scale(.64)}100%{opacity:0;transform:translate(-50%,-50%) scale(1.18)}}
 @keyframes mbDot{from{transform:scale(.8)}to{transform:scale(1.25)}}
 
 @media(max-width:760px){.mamoun-buddy-launcher{width:66px;height:66px}.mamoun-buddy-launcher img{height:82px}.mamoun-buddy-launcher .mb-label{display:none}.mamoun-buddy-backdrop{padding:0;align-items:stretch}.mamoun-buddy-panel{height:100dvh;border-radius:0;grid-template-columns:1fr;grid-template-rows:minmax(230px,39vh) 1fr}.mb-scene{min-height:230px}.mb-avatar-wrap{inset:42px 10px 0}.mb-avatar{height:min(96%,390px)}.mb-scene:before{font-size:28px;top:12px;left:14px}.mb-scene:after{top:12px;right:14px;font-size:12px}.mb-scene-status{bottom:10px;padding:8px 10px;font-size:12px}.mb-head{padding:12px 14px 10px}.mb-head-mark{width:40px;height:40px}.mb-head-copy b{font-size:18px}.mb-head-copy span{font-size:11px}.mb-transcript{padding:12px 14px;gap:9px}.mb-msg{font-size:15px;padding:10px 13px}.mb-welcome h3{font-size:20px}.mb-controls{padding:10px 12px calc(12px + env(safe-area-inset-bottom))}.mb-main-action{font-size:18px;padding:13px}.mb-privacy{font-size:10px}}
 @media(prefers-reduced-motion:reduce){.mb-avatar,.mb-avatar.talking,.mb-avatar.listening,.mb-avatar.thinking,.mb-mouth,.mb-listen-ring{animation:none!important}}
+
+.mamoun-buddy-launcher.ai-ready .mb-badge{background:#22b856!important}
+.mamoun-buddy-launcher.ai-off .mb-badge{background:#e3a31b!important}
+.mamoun-buddy-launcher.ai-ready{box-shadow:0 14px 38px rgba(20,151,90,.28),0 0 0 4px rgba(34,184,86,.10)}
+.mamoun-buddy-launcher.ai-off{box-shadow:0 14px 38px rgba(190,125,17,.24),0 0 0 4px rgba(227,163,27,.11)}
+@media(max-width:760px){.mamoun-buddy-launcher{top:auto!important;bottom:calc(96px + env(safe-area-inset-bottom))!important;left:max(12px,env(safe-area-inset-left))!important}.mamoun-buddy-launcher .mb-label{display:block!important;left:72px!important;bottom:12px!important;font-size:12px!important;padding:7px 9px!important;max-width:160px!important;white-space:normal!important;line-height:1.3!important}}
+@media(max-width:430px){.mamoun-buddy-launcher .mb-label{display:none!important}}
+
+
+/* V36.15 — AI focus fixes */
+.mb-console{min-height:0!important}
+.mb-transcript{
+  min-height:0!important;
+  overflow-y:auto!important;
+  overscroll-behavior:contain;
+  align-content:start!important;
+  justify-content:flex-start!important;
+  scroll-behavior:smooth;
+}
+.mb-msg{flex:0 0 auto!important}
+.mb-msg.mamoun,.mb-msg.child{max-width:90%!important}
+/* V38: مكان الفم يُضبط حسب الصورة المعروضة (mascot.webp أو mamoun-buddy.png) */
+.mb-avatar{--mx:50.3%;--my:18.6%;--mwid:5%;--mh:.9%}
+.mb-avatar .mb-mouth{left:var(--mx);top:var(--my);width:var(--mwid);height:calc(var(--mh)*.4);background:#6e2f2a;box-shadow:inset 0 -2px 0 rgba(214,92,92,.55)}
+@keyframes mbMouth{from{height:calc(var(--mh)*.35);width:calc(var(--mwid)*.9);transform:translate(-50%,-50%) scaleY(.75)}to{height:var(--mh);width:var(--mwid);transform:translate(-50%,-50%) scaleY(1.05);border-radius:46% 46% 55% 55%}}

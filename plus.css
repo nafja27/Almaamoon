@@ -64,3 +64,8 @@ body.plus-talking .screen.active .plus-mascot{animation:plusTalk .32s ease-in-ou
 
 /* V38.3: صورة وجه المأمون في دائرة اسم الطالب */
 .profile-chip img[src*="mascot-face"]{object-fit:cover;object-position:center;background:#fff;border:2px solid rgba(255,255,255,.85)}
+
+/* V38.4: رقم المهمة صار شارة صغيرة على زاوية الدائرة بدل دائرة مستقلة تحتها
+   (كانت تبدو كنقاط إضافية بعد وضع المهام على طريق الخرز) */
+#mapBox .path-dot.stage-checkpoint::after{top:-6px!important;left:auto!important;right:-6px!important;transform:none!important;width:16px!important;height:16px!important;min-width:16px!important;font-size:10px!important;line-height:16px!important;padding:0!important;border-width:1.5px!important}
+@media (max-width:760px){#mapBox .path-dot.stage-checkpoint::after{display:none!important}}
