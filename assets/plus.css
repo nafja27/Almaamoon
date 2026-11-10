@@ -186,18 +186,13 @@ body.plus-talking .screen.active .plus-mascot{animation:plusTalk .32s ease-in-ou
 @media (min-width:901px){#startScreen .h38-main{flex:0 1 auto}#startScreen .h38-credit{margin-top:4px}}
 #startScreen .h38-actions .resume-box .big-btn{padding:6px 10px!important;min-height:56px!important}
 
-/* V38.14: اللوحة البيضاء تمتد حتى أسفل الشاشة، والأزرار في أسفلها */
-@media (min-width:901px){
- #startScreen.h38-start{height:100vh;height:100svh;min-height:0}
- #startScreen .h38-main{flex:1 1 auto!important;min-height:0;align-items:stretch!important}
- #startScreen .h38-panel{height:100%;max-height:none}
- #startScreen .h38-actions{margin-top:auto!important}
- #startScreen .h38-stops{gap:8px}
- #startScreen .h38-map{align-items:center!important;height:100%}
- #startScreen .h38-mapbox{width:min(100%,calc((100vh - 120px) * 1.6876))}
-}
-@media (min-width:901px) and (min-height:761px){#startScreen .h38-stops li{min-height:58px}}
+/* V38.15: رجعنا اللوحة بطول محتواها (فهمت طلب «الطول للآخر» خطأ في V38.14) */
 /* زر «متابعة رحلتي» بنفس ارتفاع «ابدأ المغامرة» حتى لا يتداخل مع المحطات */
 #startScreen .h38-actions .resume-journey-btn{min-height:56px!important;padding:5px 12px!important;border-width:2px!important;border-bottom-width:4px!important;box-shadow:0 4px 0 #06477c,0 8px 14px rgba(0,58,105,.2)!important;font-size:13px!important}
 #startScreen .h38-actions .resume-journey-btn strong{font-size:19px!important}
 @media (min-width:901px) and (max-height:760px){#startScreen .h38-actions .resume-journey-btn{min-height:48px!important}#startScreen .h38-actions .resume-journey-btn strong{font-size:17px!important}#startScreen .h38-eyebrow{display:none}}
+
+/* V38.15: شريط الشعار الأبيض يمتد بعرض الصفحة حتى زر لوحة الإدارة */
+#startScreen .h38-top{background:#fff;border-radius:18px;padding:6px 8px 6px 16px;box-shadow:0 8px 20px rgba(0,30,60,.25)}
+#startScreen .h38-brand{flex:1;background:none;box-shadow:none;padding:0}
+#startScreen .h38-icon{background:#eef6fc;border:1px solid #cfe2f1}
