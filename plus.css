@@ -1,0 +1,160 @@
+/* مغامرة المأمون — طبقة V35 (plus.css): المأمون الحي، المكافآت، تحدي النطق، الخريطة الحية */
+
+/* ============ 1) المأمون الحي ============ */
+.plus-mascot{position:relative;display:flex;justify-content:center;align-items:flex-end;width:100%;animation:plusBreath 3.6s ease-in-out infinite;transform-origin:50% 100%}
+.plus-mbody{display:block;position:relative;transform-origin:50% 100%;will-change:transform}
+.plus-mbody img{display:block;margin:auto}
+/* نُلغي قفزة النسخة القديمة لأن الحركات الجديدة أغنى */
+.plus-on .coach img,.plus-on .coach img.happy,.plus-on .coach img.think{animation:none}
+@keyframes plusBreath{0%,100%{transform:translateY(0) scale(1,1)}50%{transform:translateY(-5px) scale(1.012,.995)}}
+/* أثناء الكلام: يهتز المأمون بخفة كأنه يتكلم */
+body.plus-talking .screen.active .plus-mascot{animation:plusTalk .32s ease-in-out infinite alternate}
+@keyframes plusTalk{0%{transform:translateY(0) scale(1,1) rotate(-.6deg)}100%{transform:translateY(-3px) scale(1.01,1.025) rotate(.6deg)}}
+.plus-mbody.m-jump{animation:mJump .6s cubic-bezier(.3,1.5,.5,1)}
+@keyframes mJump{0%{transform:translateY(0) scale(1,1)}20%{transform:translateY(0) scale(1.08,.9)}50%{transform:translateY(-26px) scale(.95,1.06)}80%{transform:translateY(0) scale(1.05,.95)}100%{transform:none}}
+.plus-mbody.m-wiggle{animation:mWiggle .7s ease}
+@keyframes mWiggle{0%,100%{transform:rotate(0)}20%{transform:rotate(-7deg)}40%{transform:rotate(6deg)}60%{transform:rotate(-4deg)}80%{transform:rotate(2deg)}}
+.plus-mbody.m-spin{animation:mSpin .9s ease}
+@keyframes mSpin{0%{transform:none}40%{transform:translateY(-34px) rotateY(180deg)}80%{transform:translateY(0) rotateY(360deg)}100%{transform:none}}
+.plus-mbody.m-wave{animation:mWave 1.2s ease}
+@keyframes mWave{0%,100%{transform:rotate(0)}15%{transform:rotate(-9deg)}30%{transform:rotate(7deg)}45%{transform:rotate(-7deg)}60%{transform:rotate(5deg)}75%{transform:rotate(-3deg)}}
+.plus-mbody.m-cheer{animation:mCheer 1.2s ease}
+@keyframes mCheer{0%,100%{transform:none}15%{transform:translateY(-30px) scale(1.06)}30%{transform:none}45%{transform:translateY(-22px) scale(1.04)}60%{transform:none}}
+.plus-mbody.m-listen{animation:mListen 1.4s ease-in-out infinite}
+@keyframes mListen{0%,100%{transform:rotate(-4deg)}50%{transform:rotate(-1deg) translateY(-3px)}}
+
+/* فقاعة الكلام */
+.plus-bubble{position:absolute;z-index:20;top:-6px;left:50%;transform:translate(-50%,-100%) scale(.4);opacity:0;pointer-events:none;background:#fff;color:#123d67;border:3px solid #f3c952;border-radius:20px;padding:8px 14px;font-weight:900;font-size:18px;line-height:1.5;white-space:nowrap;max-width:280px;text-overflow:ellipsis;overflow:hidden;box-shadow:0 10px 24px rgba(18,61,103,.22);font-family:var(--learn,inherit);transition:transform .25s cubic-bezier(.3,1.6,.5,1),opacity .2s}
+.plus-bubble::after{content:'';position:absolute;bottom:-11px;left:50%;margin-left:-9px;border:9px solid transparent;border-top-color:#f3c952;border-bottom:0}
+.plus-bubble.show{opacity:1;transform:translate(-50%,-100%) scale(1)}
+.coach .plus-mascot{margin-top:34px}
+.coach .plus-bubble{font-size:16px;padding:6px 12px}
+.hero-character .plus-bubble{font-size:22px;top:4%}
+.start-screen .speech-bubble.plus-greet{border:3px solid #f3c952;animation:greetPop .6s cubic-bezier(.3,1.6,.5,1)}
+@keyframes greetPop{0%{transform:scale(.6);opacity:0}100%{transform:scale(1);opacity:1}}
+/* فقاعة المستكشف على الخريطة */
+.plus-ex-bubble{position:absolute;transform:translate(-50%,-100%) scale(.4);margin-top:calc(var(--mw,900px)*-.07);z-index:15;font-size:calc(max(14px,var(--mw,900px)*.017))}
+.plus-ex-bubble.show{transform:translate(-50%,-100%) scale(1)}
+
+/* مدرّب أكبر على شاشات اللابتوب والآيباد */
+@media (min-width:761px){.plus-on .coach img{width:118px}}
+
+/* ============ 2) المكافآت ============ */
+.plus-combo{position:fixed;z-index:120;top:22%;left:50%;transform:translateX(-50%);pointer-events:none;display:flex;flex-direction:column;align-items:center;animation:comboUp 1.5s ease forwards}
+.plus-combo b{font-size:64px;line-height:1;color:#ff7a1a;text-shadow:0 4px 0 #fff,0 8px 18px rgba(0,0,0,.25)}
+.plus-combo span{font-size:26px;font-weight:900;color:#123d67;background:#fff;border-radius:999px;padding:4px 16px;box-shadow:0 8px 18px rgba(0,0,0,.15)}
+@keyframes comboUp{0%{opacity:0;transform:translateX(-50%) scale(.3)}20%{opacity:1;transform:translateX(-50%) scale(1.15)}35%{transform:translateX(-50%) scale(1)}80%{opacity:1}100%{opacity:0;transform:translateX(-50%) translateY(-60px) scale(.9)}}
+.plus-star-rain{position:fixed;inset:0;pointer-events:none;z-index:119;overflow:hidden}
+.plus-star-rain span{position:absolute;top:-50px;font-size:26px;animation:starFall 2.2s cubic-bezier(.3,.6,.6,1) forwards}
+@keyframes starFall{0%{transform:translateY(0) rotate(0);opacity:1}100%{transform:translateY(105vh) rotate(540deg);opacity:.2}}
+.plus-key-ov{position:fixed;inset:0;z-index:130;display:grid;place-items:center;background:radial-gradient(circle,rgba(18,61,103,.55),rgba(5,25,45,.85));animation:fadeIn .3s ease;padding:16px}
+.plus-key-ov.out{animation:fadeOut .35s ease forwards}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}@keyframes fadeOut{to{opacity:0}}
+.plus-key-card{position:relative;z-index:2;background:linear-gradient(180deg,#fffaf0,#ffefc4);border:5px solid #d9a11d;border-radius:32px;padding:26px 30px 22px;text-align:center;max-width:520px;width:100%;box-shadow:0 30px 60px rgba(0,0,0,.4);animation:cardIn .6s cubic-bezier(.3,1.5,.5,1)}
+@keyframes cardIn{0%{transform:scale(.4) rotate(-6deg);opacity:0}100%{transform:none;opacity:1}}
+.plus-key-card h2{margin:6px 0 2px;color:#123d67;font-size:clamp(24px,4vw,34px);font-family:var(--learn,inherit)}
+.plus-key-card .gloss{display:block;color:#5e7692;margin-bottom:10px}
+.plus-key-icon{position:relative;z-index:2;font-size:110px;line-height:1.1;animation:keySpin 1.4s cubic-bezier(.3,1.4,.5,1),keyFloat 2.4s 1.4s ease-in-out infinite;filter:drop-shadow(0 10px 18px rgba(217,161,29,.6))}
+@keyframes keySpin{0%{transform:scale(0) rotate(-200deg)}70%{transform:scale(1.25) rotate(15deg)}100%{transform:scale(1) rotate(0)}}
+@keyframes keyFloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
+.plus-rays{position:absolute;left:50%;top:84px;width:300px;height:300px;margin:-150px 0 0 -150px;border-radius:50%;background:repeating-conic-gradient(rgba(243,201,82,.45) 0 10deg,transparent 10deg 24deg);animation:rays 8s linear infinite;-webkit-mask:radial-gradient(circle,#000 30%,transparent 70%);mask:radial-gradient(circle,#000 30%,transparent 70%);z-index:1}
+@keyframes rays{to{transform:rotate(360deg)}}
+.plus-keys-row{display:flex;justify-content:center;gap:6px;margin:6px 0 16px;flex-wrap:wrap}
+.plus-keys-row span{font-size:26px;filter:grayscale(1) opacity(.35)}
+.plus-keys-row span.on{filter:none}
+.plus-keys-row span.new{animation:newKey 1s .8s cubic-bezier(.3,1.6,.5,1) both}
+@keyframes newKey{0%{transform:scale(0)}60%{transform:scale(1.6)}100%{transform:scale(1)}}
+
+/* ============ 3) تحدي النطق ============ */
+.plus-say{display:flex;flex-direction:column;align-items:center;gap:6px;width:100%;margin:2px 0 8px}
+.plus-say-btn{display:inline-flex;align-items:center;gap:8px;border:3px solid #ff8a65!important;background:#fff4ef!important;color:#a3381a!important;font-weight:900}
+.plus-say-btn .mic{font-size:1.2em}
+.plus-say-btn.listening{background:#ffe1d8!important;animation:micPulse 1s ease-in-out infinite}
+@keyframes micPulse{0%,100%{box-shadow:0 0 0 0 rgba(255,99,71,.5)}50%{box-shadow:0 0 0 12px rgba(255,99,71,0)}}
+.plus-say-res{text-align:center;min-height:0;font-size:17px;color:#123d67}
+.plus-say-res b{display:block;font-family:var(--learn,inherit);font-size:20px}
+.plus-say-res .gloss{display:block}
+.plus-say-stars{display:flex;justify-content:center;gap:4px}
+.plus-say-stars span{font-size:34px;color:#d6dde4;line-height:1}
+.plus-say-stars span.on{color:#f3b81d;animation:starPop .5s cubic-bezier(.3,1.6,.5,1) both;text-shadow:0 3px 0 #c58a00}
+@keyframes starPop{0%{transform:scale(0) rotate(-90deg)}100%{transform:scale(1) rotate(0)}}
+.plus-heard{display:block;color:#6b7f93;font-size:14px;margin-top:2px}
+.plus-heard span{font-family:var(--learn,inherit)}
+.plus-listen{display:inline-block;color:#c2410c;font-weight:900;animation:blink 1s ease-in-out infinite}
+@keyframes blink{50%{opacity:.45}}
+
+/* ============ 4) زر الموسيقى ============ */
+.plus-music-btn.off{opacity:.8;position:relative}
+.plus-music-btn.off::after{content:'';position:absolute;left:22%;right:22%;top:50%;height:3px;background:currentColor;transform:rotate(-40deg);border-radius:2px}
+
+/* ============ 5) الخريطة الحية ============ */
+/* لوحات المحطات بأسلوب اللوحات الخشبية في الرسم، معتمة لتغطي الكتابة القديمة في الصورة */
+.map-box .station-node{background:linear-gradient(180deg,#fff8e6,#f3e2b8);border:calc(var(--mw)*.003) solid #6b3f12;box-shadow:0 calc(var(--mw)*.004) 0 #8a5a22,0 calc(var(--mw)*.008) calc(var(--mw)*.014) rgba(0,0,0,.35);justify-content:flex-end;padding-bottom:calc(var(--mw)*.004);overflow:visible;transition:transform .2s ease,box-shadow .2s ease}
+.map-box .station-node b{display:block;width:100%;max-width:none;background:linear-gradient(180deg,#8b5a26,#5f3711);color:#ffe9b0;padding:calc(var(--mw)*.003) 2px;border-radius:calc(var(--mw)*.007) calc(var(--mw)*.007) 0 0;font-size:calc(var(--mw)*.0135);text-shadow:0 1px 0 #3a1f05;position:absolute;top:0;left:0}
+.map-box .station-node small{color:#5b3a12;font-weight:800;margin-top:calc(var(--mw)*.02)}
+.map-box .station-node .node-stars{color:#e0a100;letter-spacing:1px;text-shadow:0 1px 0 #7a4a00}
+.map-box .station-node span{background:#fff;color:#0d3f65;border-color:#d9a11d;z-index:2}
+.map-box .station-node:not(.locked):hover{transform:translate(-50%,-50%) scale(1.06);z-index:10}
+.map-box .station-node.locked{opacity:1;filter:grayscale(.75) brightness(.9)}
+.map-box .station-node.locked::after{content:'🔒';position:absolute;right:calc(var(--mw)*-.008);top:calc(var(--mw)*-.012);font-size:calc(var(--mw)*.016);filter:none}
+.map-box .station-node.done span{background:linear-gradient(180deg,#36c46a,#18a648);color:#fff;border-color:#fff4cf}
+.map-box .station-node.done span{font-size:0}.map-box .station-node.done span::after{content:'✓';font-size:calc(var(--mw)*.02);font-weight:900}
+.map-box .station-node.current{animation:nodeGlow 1.8s ease-in-out infinite;z-index:9}
+.map-box .station-node.current span{animation:numBounce 1.8s ease-in-out infinite;background:linear-gradient(180deg,#ffe28a,#f3c952);color:#5f3711}
+@keyframes nodeGlow{0%,100%{box-shadow:0 0 0 calc(var(--mw)*.003) #f3c952,0 0 calc(var(--mw)*.01) rgba(243,201,82,.6),0 calc(var(--mw)*.006) calc(var(--mw)*.012) rgba(0,0,0,.35)}50%{box-shadow:0 0 0 calc(var(--mw)*.006) #f3c952,0 0 calc(var(--mw)*.03) rgba(243,201,82,.95),0 calc(var(--mw)*.006) calc(var(--mw)*.012) rgba(0,0,0,.35)}}
+@keyframes numBounce{0%,100%{transform:translateX(-50%) translateY(0)}50%{transform:translateX(-50%) translateY(calc(var(--mw)*-.008))}}
+.map-box .station-node.treasure:not(.locked){background:linear-gradient(180deg,#fff3c4,#f6d36b)}
+
+/* المسار المتحرك: الأبيض يتدفق، والذهبي (ما قطعه الطالب) يلمع */
+.map-box .learning-route polyline#learningRouteLine{stroke-width:.75;stroke-dasharray:1.6 1.9;animation:routeFlow 1.6s linear infinite}
+@keyframes routeFlow{to{stroke-dashoffset:-7}}
+.map-box .learning-route #learningRouteDone{stroke-width:1.2;animation:goldShine 2.4s ease-in-out infinite}
+@keyframes goldShine{0%,100%{stroke:#f3c952}50%{stroke:#ffe9a3}}
+
+/* طبقة الحياة فوق الصورة */
+.plus-ambient{position:absolute;inset:0;z-index:1;pointer-events:none;overflow:hidden}
+.plus-ambient .glint{position:absolute;width:calc(var(--mw,900px)*.012);height:calc(var(--mw,900px)*.012);transform:translate(-50%,-50%);animation:glint 4s ease-in-out infinite;opacity:0}
+.plus-ambient .glint::before,.plus-ambient .glint::after{content:'';position:absolute;left:50%;top:50%;background:#fff;border-radius:2px;transform:translate(-50%,-50%)}
+.plus-ambient .glint::before{width:100%;height:18%}.plus-ambient .glint::after{width:18%;height:100%}
+@keyframes glint{0%,70%,100%{opacity:0;transform:translate(-50%,-50%) scale(.3) rotate(0)}80%{opacity:.95;transform:translate(-50%,-50%) scale(1) rotate(45deg)}90%{opacity:0;transform:translate(-50%,-50%) scale(.4) rotate(90deg)}}
+.plus-ambient .gull{position:absolute;width:calc(var(--mw,900px)*.03);opacity:.9;filter:drop-shadow(0 2px 2px rgba(0,0,0,.25))}
+.plus-ambient .gull svg{display:block;width:100%;animation:flap .5s ease-in-out infinite alternate}
+@keyframes flap{to{transform:scaleY(.45)}}
+.plus-ambient .gull.g0{top:9%;animation:fly 26s linear infinite}
+.plus-ambient .gull.g1{top:15%;animation:fly 34s linear infinite -12s;width:calc(var(--mw,900px)*.022)}
+.plus-ambient .gull.g2{top:48%;animation:flyBack 40s linear infinite -20s;width:calc(var(--mw,900px)*.02)}
+@keyframes fly{from{left:-6%}to{left:104%}}
+@keyframes flyBack{from{left:104%}to{left:-6%}}
+.plus-ambient .cloud-soft{position:absolute;width:22%;height:9%;border-radius:50%;background:radial-gradient(ellipse at center,rgba(255,255,255,.55),rgba(255,255,255,0) 70%)}
+.plus-ambient .cloud-soft.c0{top:3%;animation:drift 70s linear infinite}
+.plus-ambient .cloud-soft.c1{top:20%;animation:drift 95s linear infinite -50s;opacity:.7}
+@keyframes drift{from{left:-25%}to{left:105%}}
+
+/* المستكشف يمشي ويتمايل */
+.map-box .explorer{animation:exIdle 2.2s ease-in-out infinite;transition:left 1.1s cubic-bezier(.45,.05,.35,1),top 1.1s cubic-bezier(.45,.05,.35,1)}
+@keyframes exIdle{0%,100%{transform:translate(-50%,-70%)}50%{transform:translate(-50%,-74%)}}
+.map-box .explorer.walking{animation:exWalk .28s ease-in-out infinite alternate}
+.map-box .explorer.walking.face-left{animation-name:exWalkL}
+@keyframes exWalk{0%{transform:translate(-50%,-70%) rotate(-5deg)}100%{transform:translate(-50%,-76%) rotate(5deg)}}
+@keyframes exWalkL{0%{transform:translate(-50%,-70%) scaleX(-1) rotate(-5deg)}100%{transform:translate(-50%,-76%) scaleX(-1) rotate(5deg)}}
+.map-box .explorer.hop{animation:exHop .8s cubic-bezier(.3,1.5,.5,1)}
+@keyframes exHop{0%,100%{transform:translate(-50%,-70%)}40%{transform:translate(-50%,-95%) scale(1.05)}}
+.plus-step{position:absolute;z-index:6;transform:translate(-50%,-50%);font-size:calc(var(--mw,900px)*.016);pointer-events:none;opacity:0;animation:stepFade 1.4s ease forwards}
+@keyframes stepFade{0%{opacity:0;transform:translate(-50%,-50%) scale(.3)}25%{opacity:1;transform:translate(-50%,-50%) scale(1)}100%{opacity:0;transform:translate(-50%,-110%) scale(.6)}}
+
+/* دخول الخريطة: اللوحات تظهر بالتتابع */
+.map-box.plus-enter .station-node{animation:nodeIn .55s cubic-bezier(.3,1.5,.5,1) both}
+.map-box.plus-enter .station-node:nth-of-type(2){animation-delay:.05s}.map-box.plus-enter .station-node:nth-of-type(3){animation-delay:.1s}
+.map-box.plus-enter .station-node:nth-of-type(4){animation-delay:.15s}.map-box.plus-enter .station-node:nth-of-type(5){animation-delay:.2s}
+.map-box.plus-enter .station-node:nth-of-type(6){animation-delay:.25s}.map-box.plus-enter .station-node:nth-of-type(7){animation-delay:.3s}
+.map-box.plus-enter .station-node:nth-of-type(8){animation-delay:.35s}.map-box.plus-enter .station-node:nth-of-type(9){animation-delay:.4s}
+.map-box.plus-enter .station-node:nth-of-type(10){animation-delay:.45s}
+@keyframes nodeIn{0%{transform:translate(-50%,-50%) scale(0);opacity:0}100%{transform:translate(-50%,-50%) scale(1);opacity:1}}
+
+@media (prefers-reduced-motion: reduce){
+ .plus-mascot,.plus-mbody,.map-box .explorer,.plus-ambient *,.map-box .station-node.current,.map-box .station-node.current span,.map-box .learning-route polyline{animation:none!important}
+}
+.plus-music-btn{font-family:"Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif;color:#fff}
+.plus-key-ov .plus-star-rain{position:absolute;z-index:1}
+@media (max-width:760px){.map-box .station-node{justify-content:center}.map-box .station-node b{position:static;border-radius:calc(var(--mw)*.006)}.map-box .station-node small{margin-top:1px}}
+.plus-on .confetti{z-index:125}
