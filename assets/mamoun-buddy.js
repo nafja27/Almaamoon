@@ -28,7 +28,7 @@ function contextText(){
  else bits.push('الطالب في الصفحة الرئيسية لمغامرة المأمون.');
  return bits.join(' ');
 }
-function baseInstruction(){return `أنت شخصية "المأمون"، رفيق تعليمي لطفل يتعلم العربية كلغة ثانية داخل منصة مغامرة المأمون. تحدث بالعربية الفصحى المبسطة فقط. لا تستخدم أي لهجة عامية مطلقًا. قل "أهلًا يا بطل" ولا تقل "هلا". استخدم جملًا قصيرة وواضحة ومشجعة، غالبًا جملة أو جملتين فقط. لا تسأل الطفل عن اسمه أو عمره أو مدرسته أو موقعه أو أي معلومة شخصية. لا تناقش موضوعات خارج تعلم العربية؛ أعد الحوار بلطف إلى الحروف والكلمات والجمل والقراءة. افهم الإنجليزية إذا احتاج الطفل إليها، لكن اجعل ردك الأساسي بالعربية، ويمكنك إعطاء كلمة إنجليزية قصيرة جدًا عند الضرورة. عند الخطأ قل مثلًا: "أحسنت المحاولة. استمع مرة أخرى ثم حاول." عند النجاح قل مثلًا: "أحسنت! نطقك واضح." استخدم نبرة دافئة ومرحة وبطيئة نسبيًا تناسب طفلًا في المرحلة الابتدائية. السياق الحالي في المنصة: ${contextText()}`}
+function baseInstruction(){return `أنت شخصية "المأمون"، رفيق تعليمي لطفل يتعلم العربية كلغة ثانية داخل منصة مغامرة المأمون. تحدث بالعربية الفصحى المبسطة فقط. لا تستخدم أي لهجة عامية مطلقًا. رحّب بالطفل مرة واحدة فقط في أول الجلسة بقول "أهلًا يا بطل"، وبعدها لا تكرر أي تحية أبدًا (لا "أهلًا" ولا "يا بطل" في بداية ردودك)، بل ادخل في الرد مباشرة. لا تقل "هلا". استخدم جملًا قصيرة وواضحة ومشجعة، غالبًا جملة أو جملتين فقط. لا تسأل الطفل عن اسمه أو عمره أو مدرسته أو موقعه أو أي معلومة شخصية. لا تناقش موضوعات خارج تعلم العربية؛ أعد الحوار بلطف إلى الحروف والكلمات والجمل والقراءة. افهم الإنجليزية إذا احتاج الطفل إليها، لكن اجعل ردك الأساسي بالعربية، ويمكنك إعطاء كلمة إنجليزية قصيرة جدًا عند الضرورة. عند الخطأ قل مثلًا: "أحسنت المحاولة. استمع مرة أخرى ثم حاول." عند النجاح قل مثلًا: "أحسنت! نطقك واضح." استخدم نبرة دافئة ومرحة وبطيئة نسبيًا تناسب طفلًا في المرحلة الابتدائية. السياق الحالي في المنصة: ${contextText()}`}
 
 const launcher=el('button','mamoun-buddy-launcher','<span class="mb-badge" id="mbAiBadge">AI</span><span class="mb-label" id="mbLauncherLabel">تحدّث مع المأمون AI</span><img src="assets/mascot.webp?v=365" alt="المأمون">');
 launcher.type='button';launcher.setAttribute('aria-label','تحدّث مع المأمون');
@@ -49,7 +49,9 @@ document.body.append(launcher,backdrop);
 const $=id=>document.getElementById(id),avatar=$('mbAvatar'),status=$('mbSceneStatus'),transcript=$('mbTranscript'),start=$('mbStart'),mute=$('mbMute'),contextBtn=$('mbContext'),audio=$('mbAudio');audioEl=audio;
 const aiBadge=$('mbAiBadge'),launcherLabel=$('mbLauncherLabel');
 async function checkAiReady(){
- try{const r=await fetch(STATUS_API,{cache:'no-store'});const j=await r.json();const ok=!!j.ok;launcher.classList.toggle('ai-ready',ok);launcher.classList.toggle('ai-off',!ok);if(aiBadge)aiBadge.textContent=ok?'AI ✓':'AI !';if(launcherLabel)launcherLabel.textContent=ok?'تحدّث مع المأمون AI':'المأمون AI يحتاج تفعيل';return ok}catch{launcher.classList.add('ai-off');if(aiBadge)aiBadge.textContent='AI !';return false}}
+ /* V36.21: عند التشغيل المحلي (بدون Netlify) لا توجد خدمة AI، فنخفي زر المحادثة بدل أن يظهر للطالب زر لا يعمل */
+ const setAvail=ok=>{document.body.classList.toggle('mamoun-ai-unavailable',!ok);const h=document.getElementById('heroAiBtn');if(h){if(ok)h.style.removeProperty('display');else h.style.setProperty('display','none','important')}};
+ try{const r=await fetch(STATUS_API,{cache:'no-store'});const j=await r.json();const ok=!!j.ok;setAvail(ok);launcher.classList.toggle('ai-ready',ok);launcher.classList.toggle('ai-off',!ok);if(aiBadge)aiBadge.textContent=ok?'AI ✓':'AI !';if(launcherLabel)launcherLabel.textContent=ok?'تحدّث مع المأمون AI':'المأمون AI يحتاج تفعيل';return ok}catch{setAvail(false);launcher.classList.add('ai-off');if(aiBadge)aiBadge.textContent='AI !';return false}}
 checkAiReady();window.addEventListener('maamoon-ai-voice',e=>{const ok=!!e.detail?.ok;launcher.classList.toggle('ai-ready',ok);launcher.classList.toggle('ai-off',!ok);if(aiBadge)aiBadge.textContent=ok?'AI ✓':'AI !'});
 
 
@@ -74,7 +76,7 @@ function addMsg(who,text){
 function clearWelcome(){const w=transcript.querySelector('.mb-welcome');if(w)w.remove()}
 function send(obj){if(dc?.readyState==='open')dc.send(JSON.stringify(obj))}
 function refreshContext(){if(!connected)return;send({type:'session.update',session:{instructions:baseInstruction()}})}
-function askContext(){if(!connected)return;refreshContext();send({type:'response.create',response:{instructions:`ساعد الطفل الآن في النشاط الظاهر. ${contextText()} أعط توجيهًا قصيرًا جدًا بالعربية الفصحى، ثم اسأله سؤالًا واحدًا بسيطًا مرتبطًا بالنشاط.`}})}
+function askContext(){if(!connected)return;refreshContext();send({type:'response.create',response:{instructions:`ساعد الطفل الآن في النشاط الظاهر، ولا تبدأ بأي تحية. ${contextText()} أعط توجيهًا قصيرًا جدًا بالعربية الفصحى، ثم اسأله سؤالًا واحدًا بسيطًا مرتبطًا بالنشاط.`}})}
 
 function onEvent(e){let ev;try{ev=JSON.parse(e.data)}catch{return}
  switch(ev.type){
@@ -434,6 +436,9 @@ function moveTo(target,{celebrateChange=true}={}){
   if(target.classList.contains('path-dot'))target.classList.add('current-checkpoint');
 
   const key=targetKey(target);
+  /* V36.21: إذا كان المأمون واقفًا على الهدف نفسه لا نغيّر شيئًا.
+     بدون هذا الشرط كان كل تحريك يطلق MutationObserver من جديد فيبقى المأمون «يركض» بلا توقف ويستهلك المعالج. */
+  if(key===lastKey&&wrap.style.left===p.x+'%'&&wrap.style.top===p.y+'%'&&target.classList.contains('path-dot')===target.classList.contains('current-checkpoint'))return;
   const changed=!!lastKey&&key!==lastKey;
 
   if(mood)mood.textContent=moodText(target);

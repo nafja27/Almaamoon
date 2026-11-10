@@ -1,0 +1,70 @@
+/* V36.13 — animated Mamoun checkpoint token */
+#mapBox .mamoun-token-wrap{
+  position:absolute;z-index:14;pointer-events:none;
+  width:calc(var(--mw)*.078);height:calc(var(--mw)*.108);
+  min-width:60px;min-height:86px;
+  transform:translate(-50%,-84%);
+  transition:left .88s cubic-bezier(.2,.86,.2,1),top .88s cubic-bezier(.2,.86,.2,1);
+  filter:drop-shadow(0 12px 9px rgba(0,0,0,.27));
+}
+#mapBox .mamoun-token-wrap #explorer{
+  position:relative!important;left:auto!important;top:auto!important;
+  width:100%!important;height:100%!important;object-fit:contain!important;
+  transform:none!important;margin:0!important;
+  animation:mamounPartyIdle 1.35s ease-in-out infinite!important;
+}
+#mapBox .mamoun-token-wrap.moving #explorer{animation:mamounPartyMove .26s ease-in-out infinite!important}
+#mapBox .mamoun-token-wrap.celebrate #explorer{animation:mamounPartyWin .88s cubic-bezier(.16,.84,.29,1.25) both!important}
+#mapBox .mamoun-token-wrap::after{
+  content:"";position:absolute;left:50%;bottom:2%;width:52%;height:8%;
+  transform:translateX(-50%);border-radius:50%;background:rgba(3,30,55,.28);
+  filter:blur(2px);z-index:-1;animation:mamounShadow 1.35s ease-in-out infinite;
+}
+#mapBox .mamoun-game-mood{
+  position:absolute;left:50%;top:-10%;transform:translate(-50%,-100%);
+  padding:5px 9px;border-radius:999px;white-space:nowrap;
+  background:#fff;border:2px solid #f3c952;color:#0d3f65;
+  font-weight:900;font-size:calc(var(--mw)*.0105);
+  box-shadow:0 5px 14px rgba(0,0,0,.2);
+}
+#mapBox .path-dot.stage-checkpoint::after{
+  content:attr(data-step);position:absolute;left:50%;top:calc(100% + 2px);
+  transform:translateX(-50%);display:grid;place-items:center;
+  min-width:17px;height:17px;padding:0 3px;border-radius:999px;
+  background:rgba(4,48,79,.92);color:#fff;border:1px solid rgba(255,255,255,.85);
+  font-size:9px;font-weight:900;box-shadow:0 2px 5px rgba(0,0,0,.24);
+}
+#mapBox .path-dot.current-checkpoint{z-index:13}
+#mapBox .path-dot.current-checkpoint span{
+  width:31px!important;height:31px!important;
+  background:#ffd34f!important;color:#684900!important;border-color:#fff!important;
+  box-shadow:0 0 0 5px rgba(255,211,79,.36),0 0 0 10px rgba(255,255,255,.18),0 5px 10px rgba(0,0,0,.3)!important;
+  animation:checkpointGlow 1s ease-in-out infinite!important;
+}
+#mapBox .path-dot.done span{background:#20b863!important;border-color:#effff5!important;color:#fff!important}
+@keyframes mamounPartyIdle{
+  0%,100%{transform:translateY(0) rotate(-1.5deg) scale(1)}
+  25%{transform:translateY(-7px) rotate(1.8deg) scale(1.025)}
+  50%{transform:translateY(-1px) rotate(-.8deg) scale(1.01)}
+  75%{transform:translateY(-5px) rotate(1.2deg) scale(1.02)}
+}
+@keyframes mamounPartyMove{
+  0%,100%{transform:translateY(0) rotate(-5deg) scale(1.03)}
+  50%{transform:translateY(-11px) rotate(5deg) scale(1.07)}
+}
+@keyframes mamounPartyWin{
+  0%{transform:translateY(0) scale(1) rotate(0)}
+  30%{transform:translateY(-24px) scale(1.12) rotate(-8deg)}
+  55%{transform:translateY(-8px) scale(1.08) rotate(8deg)}
+  78%{transform:translateY(-15px) scale(1.1) rotate(-4deg)}
+  100%{transform:translateY(0) scale(1) rotate(0)}
+}
+@keyframes mamounShadow{
+  0%,100%{transform:translateX(-50%) scale(1);opacity:.28}
+  50%{transform:translateX(-50%) scale(.72);opacity:.15}
+}
+@keyframes checkpointGlow{0%,100%{transform:scale(1)}50%{transform:scale(1.17)}}
+@media(max-width:700px){
+  #mapBox .mamoun-token-wrap{width:calc(var(--mw)*.085);height:calc(var(--mw)*.116);min-width:48px;min-height:68px}
+  #mapBox .mamoun-game-mood{font-size:8px;padding:4px 6px}
+}

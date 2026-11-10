@@ -1,0 +1,102 @@
+/* Maghamarat Al-Ma'moon V36.10 — compact iPad UI + visible Ma'moon */
+
+/* Diagnostic: keep the character visible and reduce oversized cards */
+#diagnosticScreen .diagnostic-stage{
+  max-width:1180px!important;
+  margin:0 auto!important;
+  padding:16px 22px 24px!important;
+  gap:18px!important;
+  align-items:start!important;
+}
+#diagnosticScreen .diag-guide{
+  min-width:250px!important;
+  max-width:310px!important;
+  padding:14px!important;
+  border-radius:24px!important;
+}
+#diagnosticScreen .diag-guide img{
+  display:block!important;
+  width:auto!important;
+  max-width:100%!important;
+  height:clamp(180px,31vh,300px)!important;
+  object-fit:contain!important;
+  margin:0 auto 8px!important;
+}
+#diagnosticScreen .guide-talk{font-size:15px!important;line-height:1.7!important;padding:10px 12px!important}
+#diagnosticScreen .quiz-console{
+  width:100%!important;
+  max-width:820px!important;
+  padding:18px 22px!important;
+  border-radius:28px!important;
+  min-height:0!important;
+}
+#diagnosticScreen .diag-item{padding:6px 0 0!important;min-height:0!important}
+#diagnosticScreen .q-ar{font-size:clamp(28px,3vw,42px)!important;line-height:1.45!important;margin:8px 0 6px!important}
+#diagnosticScreen .gloss{margin-top:4px!important;font-size:14px!important}
+#diagnosticScreen .activity-target{
+  min-height:78px!important;
+  max-height:128px!important;
+  padding:10px 14px!important;
+  margin:10px auto!important;
+  border-radius:20px!important;
+}
+#diagnosticScreen .activity-target.listen-target{font-size:54px!important}
+#diagnosticScreen .choice-grid{gap:10px!important;margin-top:10px!important}
+#diagnosticScreen .choice-wrap{min-width:0!important}
+#diagnosticScreen .choice{
+  min-height:58px!important;
+  padding:10px 12px!important;
+  border-radius:18px!important;
+  font-size:clamp(19px,1.7vw,27px)!important;
+  line-height:1.45!important;
+}
+#diagnosticScreen .choice .ar-text{font-size:inherit!important}
+#diagnosticScreen .choice-audio{width:38px!important;height:38px!important;font-size:17px!important}
+#diagnosticScreen .sound-actions{margin:8px 0!important;gap:8px!important}
+#diagnosticScreen .control-btn{padding:9px 13px!important;font-size:14px!important;border-radius:13px!important}
+#diagnosticScreen .feedback{min-height:0!important;padding:9px 12px!important;margin-top:9px!important;border-radius:15px!important;font-size:14px!important}
+#diagnosticScreen .progress-dots{margin-bottom:7px!important}
+#diagnosticScreen .cefr-tag{padding:7px 11px!important;font-size:13px!important;margin-bottom:5px!important}
+
+/* Also keep Ma'moon visible in activity screens */
+#stageScreen .coach img{display:block!important;max-height:235px!important;width:auto!important;object-fit:contain!important;margin-inline:auto!important}
+
+@media(max-width:900px){
+  #diagnosticScreen .diagnostic-stage{display:flex!important;flex-direction:column!important;padding:8px 10px 100px!important;gap:9px!important}
+  #diagnosticScreen .diag-guide{
+    display:grid!important;
+    grid-template-columns:78px minmax(0,1fr)!important;
+    grid-template-rows:auto auto!important;
+    column-gap:10px!important;
+    width:100%!important;
+    max-width:none!important;
+    min-width:0!important;
+    padding:9px 12px!important;
+    align-items:center!important;
+    order:0!important;
+  }
+  #diagnosticScreen .diag-guide img{
+    display:block!important;
+    grid-row:1 / span 2!important;
+    width:72px!important;
+    height:104px!important;
+    margin:0!important;
+  }
+  #diagnosticScreen .guide-talk{font-size:12.5px!important;line-height:1.55!important;padding:6px 8px!important;margin:0!important}
+  #diagnosticScreen .domain-meter{display:none!important}
+  #diagnosticScreen .quiz-console{max-width:none!important;padding:12px 12px 14px!important;border-radius:22px!important}
+  #diagnosticScreen .q-ar{font-size:clamp(24px,7vw,33px)!important;margin:4px 0!important}
+  #diagnosticScreen .activity-target{min-height:66px!important;max-height:100px!important;margin:6px auto!important}
+  #diagnosticScreen .activity-target.listen-target{font-size:46px!important}
+  #diagnosticScreen .choice-grid{grid-template-columns:1fr!important;gap:8px!important}
+  #diagnosticScreen .choice{min-height:52px!important;padding:9px 11px!important;font-size:21px!important}
+  #diagnosticScreen .feedback{font-size:12.5px!important;padding:7px 9px!important}
+}
+
+@media(max-width:520px){
+  #diagnosticScreen .diag-guide{grid-template-columns:62px minmax(0,1fr)!important}
+  #diagnosticScreen .diag-guide img{width:58px!important;height:84px!important}
+  #diagnosticScreen .guide-talk{font-size:11.5px!important}
+  #diagnosticScreen .quiz-console{padding:10px!important}
+  #diagnosticScreen .choice{font-size:19px!important}
+}
