@@ -48,6 +48,11 @@ backdrop.innerHTML=`<section class="mamoun-buddy-panel" role="dialog" aria-modal
 document.body.append(launcher,backdrop);
 const $=id=>document.getElementById(id),avatar=$('mbAvatar'),status=$('mbSceneStatus'),transcript=$('mbTranscript'),start=$('mbStart'),mute=$('mbMute'),contextBtn=$('mbContext'),audio=$('mbAudio');audioEl=audio;
 const aiBadge=$('mbAiBadge'),launcherLabel=$('mbLauncherLabel');
+/* V38: نضبط نسبة الصورة ومكان الفم حسب الصورة المعروضة فعلًا */
+(function(){const img=$('mbBuddyImage');if(!img)return;const fit=()=>{if(!img.naturalWidth)return;avatar.style.aspectRatio=img.naturalWidth+'/'+img.naturalHeight;
+ const full=/mamoun-buddy\.png/.test(img.currentSrc||img.src);
+ const m=full?{mx:'56.1%',my:'18.85%',mwid:'8.2%',mh:'1.15%'}:{mx:'50.3%',my:'18.7%',mwid:'5.4%',mh:'1.5%'};
+ for(const k in m)avatar.style.setProperty('--'+k,m[k])};img.addEventListener('load',fit);fit()})();
 async function checkAiReady(){
  /* V36.21: عند التشغيل المحلي (بدون Netlify) لا توجد خدمة AI، فنخفي زر المحادثة بدل أن يظهر للطالب زر لا يعمل */
  const setAvail=ok=>{document.body.classList.toggle('mamoun-ai-unavailable',!ok);const h=document.getElementById('heroAiBtn');if(h){if(ok)h.style.removeProperty('display');else h.style.setProperty('display','none','important')}};
@@ -82,8 +87,8 @@ function onEvent(e){let ev;try{ev=JSON.parse(e.data)}catch{return}
  switch(ev.type){
   case 'session.created':
   case 'session.updated': break;
-  case 'input_audio_buffer.speech_started': setAvatar('listening');setStatus('أنا أستمع إليك…','listening');break;
-  case 'input_audio_buffer.speech_stopped': setAvatar('thinking');setStatus('أفكر في إجابتك…','live');break;
+  case 'input_audio_buffer.speech_started': if(avatar.classList.contains('talking'))break;setAvatar('listening');setStatus('أنا أستمع إليك…','listening');break;
+  case 'input_audio_buffer.speech_stopped': if(avatar.classList.contains('talking'))break;setAvatar('thinking');setStatus('أفكر في إجابتك…','live');break;
   case 'conversation.item.input_audio_transcription.completed':
     lastUser=ev.transcript||'';if(lastUser){clearWelcome();addMsg('child',lastUser)}break;
   case 'response.created': transcript.querySelectorAll('.mb-msg.mamoun').forEach(n=>n.remove());setAvatar('thinking');setStatus('أفكر…','live');lastAssistant='';break;

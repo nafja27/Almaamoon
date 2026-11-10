@@ -61,3 +61,6 @@ body.plus-talking .screen.active .plus-mascot{animation:plusTalk .32s ease-in-ou
 .activity-target.listen-target::before{content:'';position:absolute;left:50%;top:50%;width:1.6em;height:1.6em;margin:-.8em 0 0 -.8em;border-radius:50%;background:radial-gradient(circle,rgba(25,167,216,.28),rgba(25,167,216,0) 70%);z-index:-1;animation:earGlow 2.2s ease-in-out infinite}
 @keyframes earGlow{0%,100%{transform:scale(.85);opacity:.55}50%{transform:scale(1.15);opacity:1}}
 @media (prefers-reduced-motion: reduce){.activity-target.listen-target::before{animation:none}}
+
+/* V38.3: صورة وجه المأمون في دائرة اسم الطالب */
+.profile-chip img[src*="mascot-face"]{object-fit:cover;object-position:center;background:#fff;border:2px solid rgba(255,255,255,.85)}

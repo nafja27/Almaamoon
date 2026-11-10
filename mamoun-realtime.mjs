@@ -3,8 +3,7 @@ const reply=(body,status=200,headers={})=>new Response(body,{status,headers:{'ca
 const INSTRUCTIONS=`أنت شخصية "المأمون"، رفيق تعليمي للأطفال داخل منصة "مغامرة المأمون" لتعلّم العربية لغير الناطقين بها.
 قواعدك ثابتة:
 - تحدث بالعربية الفصحى المبسطة فقط، بصوت دافئ وطبيعي ومحادثي. استخدم تنغيمًا بشريًا متنوعًا ووقفات قصيرة طبيعية، واجعل الابتسامة مسموعة في صوتك من غير مبالغة. لا تتحدث بنبرة روبوتية أو كنبرة مذيع، ولا تستخدم إيقاعًا ثابتًا أو قراءة مسطحة.
-- رحّب بقول "أهلًا يا بطل" مرة واحدة فقط في أول الجلسة، ثم لا تكرر التحية في أي رد بعدها؛ ادخل في الإجابة مباشرة.
-- لا تستخدم كلمات عامية مثل: هلا، شنو، إي، عادي.
+- قل "أهلًا يا بطل"، ولا تستخدم كلمات عامية مثل: هلا، شنو، إي، عادي.
 - اجعل كل رد قصيرًا جدًا: غالبًا جملة أو جملتين. تحدث كأنك تخاطب طفلًا أمامك مباشرة، لا كأنك تقرأ نصًا مكتوبًا.
 - ركّز على الحروف والحركات والمدود والكلمات والجمل والقراءة والكتابة.
 - إذا كان كلام الطفل خارج موضوع التعلم، أعده بلطف إلى نشاط العربية.
@@ -27,30 +26,20 @@ export default async(request)=>{
    type:'realtime',
    model:'gpt-realtime-2.1',
    instructions:INSTRUCTIONS,
-   audio:{
-    input:{
-     /* V38: تقليل ضوضاء الصف، وعدم قطع كلام المأمون عند سماع أي صوت */
-     noise_reduction:{type:'far_field'},
-     turn_detection:{type:'semantic_vad',eagerness:'low',create_response:true,interrupt_response:false},
-     transcription:{model:'gpt-4o-mini-transcribe',language:'ar'}
-    },
-    output:{voice:'marin'}
-   }
+   audio:{output:{voice:'marin'}}
   };
 
-  const call=async sess=>{
-   const fd=new FormData();
-   fd.set('sdp',sdp);
-   fd.set('session',JSON.stringify(sess));
-   const r=await fetch('https://api.openai.com/v1/realtime/calls',{method:'POST',headers:{authorization:`Bearer ${key}`},body:fd});
-   return{r,text:await r.text()};
-  };
-  let {r:apiResponse,text:body}=await call(session);
-  /* V38: إذا رفضت الخدمة الإعدادات الجديدة نعود للإعدادات الأصلية حتى لا يتعطل المساعد */
-  if(apiResponse.status===400){
-   console.error('Realtime V38 settings rejected, retrying with basic session:',body.slice(0,300));
-   ({r:apiResponse,text:body}=await call({type:'realtime',model:session.model,instructions:INSTRUCTIONS,audio:{output:{voice:'marin'}}}));
-  }
+  const fd=new FormData();
+  fd.set('sdp',sdp);
+  fd.set('session',JSON.stringify(session));
+
+  const apiResponse=await fetch('https://api.openai.com/v1/realtime/calls',{
+   method:'POST',
+   headers:{authorization:`Bearer ${key}`},
+   body:fd
+  });
+
+  const body=await apiResponse.text();
   if(!apiResponse.ok){
    let detail='',code='';
    try{

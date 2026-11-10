@@ -78,3 +78,7 @@
 }
 .mb-msg{flex:0 0 auto!important}
 .mb-msg.mamoun,.mb-msg.child{max-width:90%!important}
+/* V38: مكان الفم يُضبط حسب الصورة المعروضة (mascot.webp أو mamoun-buddy.png) */
+.mb-avatar{--mx:50.3%;--my:18.6%;--mwid:5%;--mh:.9%}
+.mb-avatar .mb-mouth{left:var(--mx);top:var(--my);width:var(--mwid);height:calc(var(--mh)*.4);background:#6e2f2a;box-shadow:inset 0 -2px 0 rgba(214,92,92,.55)}
+@keyframes mbMouth{from{height:calc(var(--mh)*.35);width:calc(var(--mwid)*.9);transform:translate(-50%,-50%) scaleY(.75)}to{height:var(--mh);width:var(--mwid);transform:translate(-50%,-50%) scaleY(1.05);border-radius:46% 46% 55% 55%}}
