@@ -4,18 +4,9 @@
 (function(){
 'use strict';
 const C=window.MAAMOON_CONTENT;
-/*PLUS V38: جسر الأحداث إلى plus.js (المأمون الحي، تحدي النطق، الموسيقى) */
-function plusEmit(t,d){try{window.dispatchEvent(new CustomEvent('maamoon:'+t,{detail:d||{}}))}catch(e){}}
 /* إعدادات قاعدة البيانات (assets/config.js) — إذا كانت فارغة تعمل اللعبة محليًا */
 const CFG=window.MAAMOON_CONFIG||{};const CLOUD=!!(CFG.supabaseUrl&&CFG.supabaseAnonKey);var cloudReadyFlag=false;
 const {BANK,DIAG,FINAL,LEVELS,ALPHABET,VOCAB,WRITING}=C;
-
-/* V36.10: استبدال سؤال الجملة المربك في التشخيص بسؤال بصري أبسط. */
-try{
- const badDiag=DIAG.findIndex(d=>/الجملة الصحيحة/u.test(String(d&&d.q||''))||((d&&d.opts)||[]).some(o=>typeof o==='string'&&/مَدْرَسَتِي|مدرستي/u.test(o)));
- if(badDiag>=0)DIAG.splice(badDiag,1,{domain:'sentences',q:'أَيُّ جُمْلَةٍ تُنَاسِبُ الصُّورَةَ؟',en:'Which sentence matches the picture?',show:'📖',opts:['أَنَا أَقْرَأُ كِتَابًا.','أَنَا أَشْرَبُ مَاءً.','أَنَا أَلْعَبُ بِالكُرَةِ.'],ans:0});
-}catch{}
-
 
 /* مفاتيح الحفظ لم تتغير عمدًا حتى تبقى بيانات الطلبة من النسخ السابقة */
 const DB_KEY='almaamoon_v26_db',SESSION_KEY='almaamoon_v26_session',SETTINGS_KEY='almaamoon_v26_settings';
@@ -64,8 +55,7 @@ function load(k,fallback){try{const v=JSON.parse(localStorage.getItem(k));return
 function save(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){flash('⚠️ مساحة التخزين ممتلئة. احذف بعض التسجيلات الصوتية أو صدّر نسخة احتياطية.')}}
 function persist(){save(DB_KEY,CLOUD?Object.assign({},db,{audioLibrary:{}}):db);save(SESSION_KEY,session);save(SETTINGS_KEY,settings);if(CLOUD&&cloudReadyFlag)scheduleSync()}
 function current(){const s=session&&session.role==='student'?db.students.find(x=>x.id===session.id):null;if(s)ensureLearnerShape(s);return s}
-function nextStudentNumber(){const maxCode=(db.students||[]).reduce((m,s)=>{const x=String(s&&s.code||'').toUpperCase().match(/^MAM-(\d+)$/);return x?Math.max(m,+x[1]||0):m},0);db.counter=Math.max(+db.counter||0,maxCode)+1;return db.counter}
-function blankStudent(name,grade,section,pin,support){const n=nextStudentNumber();const s={id:'s'+Date.now()+Math.random().toString(36).slice(2,7),name,grade:+grade,section:section||'أ',code:'MAM-'+String(n).padStart(3,'0'),pin:pin||String(Math.floor(1000+Math.random()*9000)),diagnosticDone:false,baseline:null,cefr:'Pre-A1',tier:0,stage:0,completed:Array(8).fill(false),mastery:{letters:0,sounds:0,pronunciation:0,wordReading:0,wordMeaning:0,sentenceBuild:0,sentenceListen:0,sentenceOrder:0,fluency:0},points:0,attempts:{},errors:{},supports:{},lastLogin:new Date().toISOString(),graduated:false,certificate:'',progressChecks:[],support:support||'en',translit:(support||'en')==='en'};ensureLearnerShape(s);return s}
+function blankStudent(name,grade,section,pin,support){db.counter=(db.counter||0)+1;const s={id:'s'+Date.now()+Math.random().toString(36).slice(2,6),name,grade:+grade,section:section||'أ',code:'MAM-'+String(db.counter).padStart(3,'0'),pin:pin||String(Math.floor(1000+Math.random()*9000)),diagnosticDone:false,baseline:null,cefr:'Pre-A1',tier:0,stage:0,completed:Array(8).fill(false),mastery:{letters:0,sounds:0,pronunciation:0,wordReading:0,wordMeaning:0,sentenceBuild:0,sentenceListen:0,sentenceOrder:0,fluency:0},points:0,attempts:{},errors:{},supports:{},lastLogin:new Date().toISOString(),graduated:false,certificate:'',progressChecks:[],support:support||'en',translit:(support||'en')==='en'};ensureLearnerShape(s);return s}
 function ensureLearnerShape(s){if(!s)return;s.errors=s.errors||{};s.supports=s.supports||{};s.attempts=s.attempts||{};s.progressChecks=s.progressChecks||[];s.stars=s.stars||Array(9).fill(0);s.skillTier=s.skillTier||{};if(!s.support)s.support='en';if(typeof s.translit!=='boolean')s.translit=s.support==='en';s.mastery=s.mastery||{};s.completed=s.completed||Array(8).fill(false);s.missions=s.missions||{};s.mDates=s.mDates||{};s.dayLog=s.dayLog||{};
  /* الطلبة من النسخ السابقة: المحطات المكتملة تُعدّ مهامها كلها مكتملة */
  MISSIONS.forEach((ms,i)=>{const done=i<8?s.completed[i]:s.graduated;if(done&&!s.missions[i]){const sc=[80,80,90,100][s.stars&&s.stars[i]||0]||80;s.missions[i]=ms.map(()=>sc);s.mDates[i]=ms.map(()=>'2000-01-01')}})}
@@ -132,20 +122,9 @@ let currentAudio=null,aiTtsCtx=null,aiTtsSource=null,aiTtsAbort=null,audioRunId=
 const aiTtsCache=new Map();
 function getAiTtsCtx(){const A=window.AudioContext||window.webkitAudioContext;if(!A)return null;if(!aiTtsCtx)aiTtsCtx=new A();return aiTtsCtx}
 function stopAudio(){audioRunId++;if(aiTtsAbort){try{aiTtsAbort.abort()}catch{}aiTtsAbort=null}if(aiTtsSource){try{aiTtsSource.stop()}catch{}aiTtsSource=null}if(currentAudio){try{currentAudio.pause()}catch{}currentAudio=null}if('speechSynthesis'in window)speechSynthesis.cancel()}
-function isLongVowelSyllable(text){const t=audioKey(text);return /^[ء-ي]َا$/u.test(t)||/^[ء-ي]ُو$/u.test(t)||/^[ء-ي]ِي$/u.test(t)}
-function isShortVowelSyllable(text){return /^[ء-ي][َُِ]$/u.test(audioKey(text))}
-function isCriticalSyllable(text){return isShortVowelSyllable(text)||isLongVowelSyllable(text)}
+function isLongVowelSyllable(text){const t=audioKey(text);return /^[ء-ي][ُ]و$/u.test(t)||/^[ء-ي][ِ]ي$/u.test(t)}
 function browserSpeak(clean,rate=.85,onEnd){if('speechSynthesis'in window){const u=new SpeechSynthesisUtterance(clean);u.lang=arabicVoice?arabicVoice.lang:'ar-SA';u.rate=Math.max(.62,rate);u.pitch=1;u.volume=1;if(arabicVoice)u.voice=arabicVoice;if(onEnd){let fired=false;const fin=()=>{if(!fired){fired=true;onEnd()}};u.onend=fin;u.onerror=fin}speechSynthesis.speak(u)}else if(onEnd)later(onEnd,600)}
-const AI_TTS_CACHE_NAME='maamoon-tts-v3613',aiTtsPending=new Map();
-function aiTtsCacheRequest(key){return new Request(location.origin+'/__maamoon_tts_cache__?k='+encodeURIComponent(key),{method:'GET'})}
-async function loadAiTts(clean,slow){const key=(slow?'S|':'N|')+clean;if(aiTtsCache.has(key))return aiTtsCache.get(key).slice(0);if(aiTtsPending.has(key))return (await aiTtsPending.get(key)).slice(0);const job=(async()=>{let buf=null;try{if('caches'in window){const c=await caches.open(AI_TTS_CACHE_NAME),hit=await c.match(aiTtsCacheRequest(key));if(hit)buf=await hit.arrayBuffer()}}catch{}if(!buf){const r=await fetch('/api/mamoun-tts',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({text:clean,slow:!!slow})});if(!r.ok)throw new Error('tts_'+r.status);buf=await r.arrayBuffer();try{if('caches'in window){const c=await caches.open(AI_TTS_CACHE_NAME);await c.put(aiTtsCacheRequest(key),new Response(buf.slice(0),{headers:{'content-type':r.headers.get('content-type')||'audio/mpeg','cache-control':'public,max-age=604800'}}))}}catch{}}document.documentElement.dataset.aiVoice='on';window.dispatchEvent(new CustomEvent('maamoon-ai-voice',{detail:{ok:true}}));if(aiTtsCache.size>100)aiTtsCache.delete(aiTtsCache.keys().next().value);aiTtsCache.set(key,buf.slice(0));return buf})().finally(()=>aiTtsPending.delete(key));aiTtsPending.set(key,job);return (await job).slice(0)}
-function prefetchSpeech(text,slow=false){const clean=audioKey(text);if(!clean||!settings.sound||recordedAudio(clean)||Date.now()<aiTtsDownUntil)return;loadAiTts(clean,slow).catch(()=>{aiTtsDownUntil=Date.now()+120000})}
-/* V36.21: إذا تعذر صوت OpenAI (تشغيل محلي أو بدون مفتاح) نتذكر ذلك دقيقتين ونستخدم صوت الجهاز فورًا بدل الانتظار أو الصمت */
-let aiTtsDownUntil=0,aiTtsWarned=false;
-async function aiSpeak(clean,slow,onEnd,runId){try{if(Date.now()<aiTtsDownUntil)throw new Error('tts_down');const buf=await loadAiTts(clean,slow);if(runId!==audioRunId)return;const ctx=getAiTtsCtx();if(!ctx)throw new Error('no_audio_context');if(ctx.state==='suspended')await ctx.resume();const decoded=await ctx.decodeAudioData(buf.slice(0));if(runId!==audioRunId)return;const src=ctx.createBufferSource();src.buffer=decoded;src.connect(ctx.destination);aiTtsSource=src;src.onended=()=>{if(runId!==audioRunId)return;aiTtsSource=null;if(onEnd)onEnd()};src.start(0)}catch(e){if(runId!==audioRunId)return;if(!(e&&e.message==='tts_down')){aiTtsDownUntil=Date.now()+120000;document.documentElement.dataset.aiVoice='off';window.dispatchEvent(new CustomEvent('maamoon-ai-voice',{detail:{ok:false}}))}
- /* كان المقطع القصير (بَ، بَا) يُترك صامتًا؛ الآن نشغّل صوت الجهاز وننبّه المعلمة مرة واحدة فقط */
- if(isCriticalSyllable(clean)&&!aiTtsWarned){aiTtsWarned=true;flash('ℹ️ صوت OpenAI غير متصل — نستخدم صوت الجهاز. للحصول على أوضح نطق للحركات والمدود فعّلي OPENAI_API_KEY أو سجّلي صوتك في استوديو الصوت.')}
- browserSpeak(clean,slow?.68:.85,onEnd)}}
+async function aiSpeak(clean,slow,onEnd,runId){const key=(slow?'S|':'N|')+clean;try{let buf=aiTtsCache.get(key);if(!buf){const ctl=new AbortController();aiTtsAbort=ctl;const r=await fetch('/api/mamoun-tts',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({text:clean,slow:!!slow}),signal:ctl.signal});if(!r.ok)throw new Error('tts_'+r.status);buf=await r.arrayBuffer();if(aiTtsCache.size>80)aiTtsCache.delete(aiTtsCache.keys().next().value);aiTtsCache.set(key,buf.slice(0))}if(runId!==audioRunId)return;const ctx=getAiTtsCtx();if(!ctx)throw new Error('no_audio_context');if(ctx.state==='suspended')await ctx.resume();const decoded=await ctx.decodeAudioData(buf.slice(0));if(runId!==audioRunId)return;const src=ctx.createBufferSource();src.buffer=decoded;src.connect(ctx.destination);aiTtsSource=src;src.onended=()=>{if(runId!==audioRunId)return;aiTtsSource=null;if(onEnd)onEnd()};src.start(0)}catch(e){if(e&&e.name==='AbortError')return;if(runId!==audioRunId)return;browserSpeak(clean,slow?.68:.85,onEnd)}}
 function speak(text,rate=.85,onEnd){if(!settings.sound||!text){if(onEnd)later(onEnd,50);return}const clean=audioKey(text);if(rate<=.55&&!onEnd)return speakSlow(clean);stopAudio();const runId=audioRunId;const src=recordedAudio(clean);if(src){try{currentAudio=new Audio(src);currentAudio.playbackRate=isLongVowelSyllable(clean)?1:Math.max(.7,Math.min(1.12,rate/.85));if(onEnd)currentAudio.onended=onEnd;currentAudio.play().catch(()=>browserSpeak(clean,rate,onEnd));return}catch{}}return aiSpeak(clean,rate<.7,onEnd,runId)}
 /* iPad/iPhone: نفتح AudioContext عند أول لمسة حتى يمكن تشغيل صوت OpenAI بعد اكتمال الشبكة. */
 function unlockAudio(){try{const c=getAiTtsCtx();if(c&&c.state==='suspended')c.resume();if('speechSynthesis'in window){const u=new SpeechSynthesisUtterance(' ');u.volume=0;speechSynthesis.speak(u)}const A=window.AudioContext||window.webkitAudioContext;if(A){beep.ctx=beep.ctx||new A();if(beep.ctx.state==='suspended')beep.ctx.resume()}}catch{}}
@@ -157,20 +136,18 @@ function speakSlow(text){const t=audioKey(text);if(!t||!settings.sound)return;st
 function readButtons(box,texts){const btns=[...box.querySelectorAll('.choice')];speakSeries(texts,.78,i=>btns.forEach((b,j)=>b.classList.toggle('speaking',j===i)))}
 
 /* ================= واجهة ================= */
-function show(id){clearTimers();stopAudio();document.querySelectorAll('.screen').forEach(x=>x.classList.remove('active'));$(id).classList.add('active');window.scrollTo(0,0);applyLearnerPrefs();plusEmit('screen',{id})}
-function overlay(html,lock){$('overlayCard').innerHTML=html;$('overlay').classList.remove('hidden');$('overlay').dataset.lock=lock?'1':'';const f=$('overlayCard').querySelector('input,button');if(f)f.focus()}
-function closeOverlay(){$('overlay').classList.add('hidden');$('overlay').dataset.lock=''}
-/* V36.21: بعض النوافذ لا تُغلق بلمسة خارجها أو بزر Esc (رمز الطالب الجديد، اختيار الرقم السري، نتيجة التشخيص) */
-function softClose(){if(!$('overlay').dataset.lock)closeOverlay()}
+function show(id){clearTimers();stopAudio();document.querySelectorAll('.screen').forEach(x=>x.classList.remove('active'));$(id).classList.add('active');window.scrollTo(0,0);applyLearnerPrefs()}
+function overlay(html){$('overlayCard').innerHTML=html;$('overlay').classList.remove('hidden');const f=$('overlayCard').querySelector('input,button');if(f)f.focus()}
+function closeOverlay(){$('overlay').classList.add('hidden')}
 function flash(msg){const x=document.createElement('div');x.className='flash-msg';x.setAttribute('role','status');x.textContent=msg;document.body.appendChild(x);setTimeout(()=>x.remove(),2600)}
-function beep(ok){if(!settings.sound)return;if(window.MaamoonFX){window.MaamoonFX.play(ok?'correct':'wrong');return}try{const A=window.AudioContext||window.webkitAudioContext;if(!A)return;const c=beep.ctx||(beep.ctx=new A());const notes=ok?[660,880]:[260,200];notes.forEach((f,i)=>{const o=c.createOscillator(),g=c.createGain();o.connect(g);g.connect(c.destination);o.frequency.value=f;o.type=ok?'sine':'triangle';const t=c.currentTime+i*.09;g.gain.setValueAtTime(.06,t);g.gain.exponentialRampToValueAtTime(.001,t+.16);o.start(t);o.stop(t+.17)})}catch{}}
+function beep(ok){if(!settings.sound)return;try{const A=window.AudioContext||window.webkitAudioContext;if(!A)return;const c=beep.ctx||(beep.ctx=new A());const notes=ok?[660,880]:[260,200];notes.forEach((f,i)=>{const o=c.createOscillator(),g=c.createGain();o.connect(g);g.connect(c.destination);o.frequency.value=f;o.type=ok?'sine':'triangle';const t=c.currentTime+i*.09;g.gain.setValueAtTime(.06,t);g.gain.exponentialRampToValueAtTime(.001,t+.16);o.start(t);o.stop(t+.17)})}catch{}}
 function confetti(){if(matchMedia('(prefers-reduced-motion: reduce)').matches)return;const box=document.createElement('div');box.className='confetti';const bits=['⭐','✨','🎉','🟡','🔵','🟢'];for(let i=0;i<36;i++){const s=document.createElement('span');s.textContent=bits[i%bits.length];s.style.left=Math.random()*100+'%';s.style.animationDelay=Math.random()*.6+'s';s.style.animationDuration=(1.6+Math.random()*1.2)+'s';box.appendChild(s)}document.body.appendChild(box);setTimeout(()=>box.remove(),3400)}
 function coach(ar,en,mood){const t=$('coachTitle'),x=$('coachText');if(!t)return;t.innerHTML=esc(ar);x.innerHTML=G(en);const img=document.querySelector('.coach img');if(img&&mood){img.classList.remove('happy','think');void img.offsetWidth;img.classList.add(mood)}}
 function refreshHud(){const s=current();if(!s)return;const set=(id,v)=>{const e=$(id);if(e)e.textContent=v};set('hudName',s.name);set('hudGrade',s.grade);set('hudPoints',s.points);set('hudKeys',keys(s));set('hudLevel',s.cefr);set('stagePoints',s.points);set('writePoints',s.points);set('checkPoints',s.points)}
 function setCombo(n){combo=n;const p=$('comboPill');if(!p)return;p.hidden=n<2;p.querySelector('b').textContent=n;if(n>=2){p.classList.remove('pop');void p.offsetWidth;p.classList.add('pop')}}
 /* نقاط: 10 لكل إجابة صحيحة من أول مرة + مكافأة سلسلة */
-function reward(ok,firstTry=true){const s=current();if(!s)return;if(ok&&firstTry){setCombo(combo+1);s.points+=10+(combo>=3?5:0)}else if(!ok)setCombo(0);persist();refreshHud();plusEmit('answer',{ok,firstTry,combo})}
-function praise(){const p=PRAISE[Math.floor(Math.random()*PRAISE.length)];coach(p[0],p[1],'happy');plusEmit('praise',{ar:p[0],en:p[1]});return p}
+function reward(ok,firstTry=true){const s=current();if(!s)return;if(ok&&firstTry){setCombo(combo+1);s.points+=10+(combo>=3?5:0)}else if(!ok)setCombo(0);persist();refreshHud()}
+function praise(){const p=PRAISE[Math.floor(Math.random()*PRAISE.length)];coach(p[0],p[1],'happy');return p}
 
 /* ================= المستوى والإتقان ================= */
 function cefrFrom(n){let x='Pre-A1';LEVELS.forEach(l=>{if(n>=l.min)x=l.name});return x}
@@ -220,42 +197,15 @@ function activityHead(title,titleEn,i,n,tag){return `<div class="activity-title"
 function startLogin(){overlay(`<h2>دخول الطالب</h2>${G('Student login')}<div class="form-field"><label for="loginCode">رمز الطالب <small dir="ltr">Student code</small></label><input id="loginCode" autocomplete="off" placeholder="MAM-001" dir="ltr"></div><div class="form-field"><label for="loginPin">الرقم السري <small dir="ltr">PIN</small></label><input id="loginPin" type="password" inputmode="numeric" autocomplete="off" dir="ltr"></div><div class="form-actions"><button class="big-btn ghost" id="cancelOverlay">إلغاء</button><button class="big-btn primary" id="doLogin">دخول</button></div>`);$('cancelOverlay').onclick=closeOverlay;const go=()=>{const code=toLatinDigits($('loginCode').value).trim().toUpperCase(),pin=toLatinDigits($('loginPin').value).trim();
  if(CLOUD){const btn=$('doLogin');btn.disabled=true;btn.textContent='...';cloudStudentLogin(code,pin).then(s=>{closeOverlay();if(s.pinPrompt||(s.pinDefault&&s.pinPrompt!==false))askPinChoice(s,afterLogin);else afterLogin()}).catch(e=>{btn.disabled=false;btn.textContent='دخول';flash(cloudMsg(e))});return}
  const s=db.students.find(x=>x.code.toUpperCase()===code&&x.pin===pin);if(!s)return flash('بيانات الدخول غير صحيحة — Wrong code or PIN');session={role:'student',id:s.id};s.lastLogin=new Date().toISOString();persist();closeOverlay();if(s.pinPrompt)askPinChoice(s,afterLogin);else afterLogin()};$('doLogin').onclick=go;$('loginPin').onkeydown=e=>{if(e.key==='Enter')go()}}
-function createAccount(){if(CLOUD){overlay(`<div class="center"><div class="big-emoji">👩‍🏫</div><h2>حسابات الطلبة تُنشأ من المعلمة</h2>${G('Your teacher creates student accounts.')}<p>اطلب من معلمتك رمز الطالب والرقم السري، ثم اضغط «دخول الطالب».</p>${G('Ask your teacher for your student code and PIN, then tap Student login.')}<div class="form-actions center-row"><button class="big-btn ghost" id="cancelOverlay">إغلاق</button><button class="big-btn primary" id="goLogin">دخول الطالب ▶</button></div></div>`);$('cancelOverlay').onclick=closeOverlay;$('goLogin').onclick=startLogin;return}overlay(`<h2>حساب طالب جديد</h2>${G('New student')}<div class="form-field"><label for="newName">اسم الطالب <small dir="ltr">Name</small></label><input id="newName"></div><div class="form-row"><div class="form-field"><label for="newGrade">الصف <small dir="ltr">Grade</small></label><select id="newGrade">${[1,2,3,4,5,6].map(g=>`<option value="${g}">${g}</option>`).join('')}</select></div><div class="form-field"><label for="newSection">الشعبة</label><input id="newSection" value="أ"></div></div><div class="form-field"><label for="newSupport">لغة المساعدة <small dir="ltr">Help language</small></label><select id="newSupport"><option value="en">English — تظهر ترجمة ونطق لاتيني</option><option value="off">بدون — عربي فقط</option></select></div><div class="form-field"><label for="newPin">رقم سري من 4 أرقام <small dir="ltr">4-digit PIN</small></label><input id="newPin" inputmode="numeric" maxlength="4" placeholder="اتركه فارغًا ليُنشأ تلقائيًا" dir="ltr"></div><div class="form-actions"><button class="big-btn ghost" id="cancelOverlay">إلغاء</button><button class="big-btn gold" id="doCreate">إنشاء وبدء الاختبار</button></div>`);$('cancelOverlay').onclick=closeOverlay;$('doCreate').onclick=()=>{const name=$('newName').value.trim();if(!name)return flash('اكتب اسم الطالب');let pin=$('newPin').value.trim();if(pin&&!/^\d{4}$/.test(pin))return flash('الرقم السري يجب أن يكون 4 أرقام');const s=blankStudent(name,$('newGrade').value,$('newSection').value.trim(),pin,$('newSupport').value);db.students.push(s);session={role:'student',id:s.id};persist();$('overlay').dataset.lock='1';$('overlayCard').innerHTML=`<div class="center"><div class="big-emoji">🎉</div><h2>تم إنشاء الحساب</h2>${G('Your account is ready. Write down your code and PIN.')}<div class="id-card"><span>رمز الطالب<b dir="ltr">${esc(s.code)}</b></span><span>الرقم السري<b dir="ltr">${esc(s.pin)}</b></span></div><button class="big-btn primary" id="startDiagNow">ابدأ الاختبار القصير ▶</button></div>`;$('startDiagNow').onclick=()=>{closeOverlay();startDiagnostic()}}}
-async function afterLogin(){
- let s=current();setTimeout(()=>{const x=current();plusEmit('login',{name:x&&x.name})},0);
- if(!s&&CLOUD&&cloud.token&&cloud.role==='student'){
-  try{
-   const srv=await rpc('student_get',{p_token:cloud.token});
-   s=mergeStudent(srv);session={role:'student',id:s.id};persist()
-  }catch(e){
-   flash('تعذر استرجاع الرحلة الآن. سجّل الدخول مرة أخرى.');
-   return startLogin()
-  }
- }
- if(!s)return startLogin();
- ensureLearnerShape(s);
- if(!Number.isFinite(+s.stage))s.stage=0;
- s.stage=Math.max(0,Math.min(8,+s.stage||0));
- logActivity(s);persist();refreshHud();applyLearnerPrefs();
- if(!s.diagnosticDone)return startDiagnostic();
-
- /* افتح الشاشة أولًا حتى لا يبدو الزر معطّلًا لو حصل خطأ في تجهيز الخريطة */
- show('worldScreen');
- try{
-  prepareWorld();
- }catch(err){
-  console.error('prepareWorld failed',err);
-  flash('تم فتح الرحلة. جارٍ إعادة تجهيز الخريطة…');
-  later(()=>{try{prepareWorld()}catch(e){console.error(e)}},180)
- }
-}
+function createAccount(){if(CLOUD){overlay(`<div class="center"><div class="big-emoji">👩‍🏫</div><h2>حسابات الطلبة تُنشأ من المعلمة</h2>${G('Your teacher creates student accounts.')}<p>اطلب من معلمتك رمز الطالب والرقم السري، ثم اضغط «دخول الطالب».</p>${G('Ask your teacher for your student code and PIN, then tap Student login.')}<div class="form-actions center-row"><button class="big-btn ghost" id="cancelOverlay">إغلاق</button><button class="big-btn primary" id="goLogin">دخول الطالب ▶</button></div></div>`);$('cancelOverlay').onclick=closeOverlay;$('goLogin').onclick=startLogin;return}overlay(`<h2>حساب طالب جديد</h2>${G('New student')}<div class="form-field"><label for="newName">اسم الطالب <small dir="ltr">Name</small></label><input id="newName"></div><div class="form-row"><div class="form-field"><label for="newGrade">الصف <small dir="ltr">Grade</small></label><select id="newGrade">${[1,2,3,4,5,6].map(g=>`<option value="${g}">${g}</option>`).join('')}</select></div><div class="form-field"><label for="newSection">الشعبة</label><input id="newSection" value="أ"></div></div><div class="form-field"><label for="newSupport">لغة المساعدة <small dir="ltr">Help language</small></label><select id="newSupport"><option value="en">English — تظهر ترجمة ونطق لاتيني</option><option value="off">بدون — عربي فقط</option></select></div><div class="form-field"><label for="newPin">رقم سري من 4 أرقام <small dir="ltr">4-digit PIN</small></label><input id="newPin" inputmode="numeric" maxlength="4" placeholder="اتركه فارغًا ليُنشأ تلقائيًا" dir="ltr"></div><div class="form-actions"><button class="big-btn ghost" id="cancelOverlay">إلغاء</button><button class="big-btn gold" id="doCreate">إنشاء وبدء الاختبار</button></div>`);$('cancelOverlay').onclick=closeOverlay;$('doCreate').onclick=()=>{const name=$('newName').value.trim();if(!name)return flash('اكتب اسم الطالب');let pin=$('newPin').value.trim();if(pin&&!/^\d{4}$/.test(pin))return flash('الرقم السري يجب أن يكون 4 أرقام');const s=blankStudent(name,$('newGrade').value,$('newSection').value.trim(),pin,$('newSupport').value);db.students.push(s);session={role:'student',id:s.id};persist();$('overlayCard').innerHTML=`<div class="center"><div class="big-emoji">🎉</div><h2>تم إنشاء الحساب</h2>${G('Your account is ready. Write down your code and PIN.')}<div class="id-card"><span>رمز الطالب<b dir="ltr">${esc(s.code)}</b></span><span>الرقم السري<b dir="ltr">${esc(s.pin)}</b></span></div><button class="big-btn primary" id="startDiagNow">ابدأ الاختبار القصير ▶</button></div>`;$('startDiagNow').onclick=()=>{closeOverlay();startDiagnostic()}}}
+function afterLogin(){const s=current();logActivity(s);persist();refreshHud();applyLearnerPrefs();if(!s.diagnosticDone)startDiagnostic();else{prepareWorld();show('worldScreen')}}
 
 /* ================= عنصر سؤال عام (للتشخيص والقياس النهائي) ================= */
 function renderItem(host,item,onAnswer){
  const isPic=typeof item.show==='string'&&!/[\u0600-\u06FF]/.test(item.show);
  host.innerHTML=`<h2 class="q-ar">${esc(item.q)}</h2>${G(item.en)}${item.show?`<div class="activity-target ${isPic?'pic-target':''}"><span class="ar-text">${esc(item.show)}</span></div>`:`<div class="activity-target listen-target" aria-hidden="true">🎧</div>`}${item.speak?`<div class="sound-actions"><button class="control-btn" data-hear>🔊 استمع</button><button class="control-btn" data-slow>🐢 ببطء</button></div>`:''}<div class="choice-grid" data-choices></div><div class="feedback" data-feed>${item.speak?'استمع جيدًا ثم اختر.':'اقرأ بنفسك ثم اختر.'}${G(item.speak?'Listen carefully, then choose.':'Read by yourself, then choose.')}</div>`;
  const hear=host.querySelector('[data-hear]'),slow=host.querySelector('[data-slow]');
- if(hear){prefetchSpeech(item.speak,false);hear.onpointerenter=()=>prefetchSpeech(item.speak,false);slow.onpointerenter=()=>prefetchSpeech(item.speak,true);hear.onclick=()=>speak(item.speak,.78);slow.onclick=()=>speak(item.speak,.5)}
+ if(hear){hear.onclick=()=>speak(item.speak,.78);slow.onclick=()=>speak(item.speak,.5)}
  /* في أسئلة الحروف لا نقرأ الخيارات حتى لا تتحول إلى مطابقة صوتية */
  const optAudio=item.domain!=='letters'&&!!item.speak;
  const btns=renderOptions(host.querySelector('[data-choices]'),item.opts,{withAudio:optAudio,tl:false,onPick:(idx)=>{const ok=idx===item.ans;lockAndMark(btns,idx,item.ans,true);beep(ok);const f=host.querySelector('[data-feed]');f.innerHTML=ok?'أحسنت! '+G('Well done!'):'لا بأس. '+G('That\'s okay.');later(()=>onAnswer(ok),ok?700:1100)}});
@@ -265,18 +215,13 @@ function renderItem(host,item,onAnswer){
 /* ================= الاختبار التشخيصي ================= */
 let diagIndex=0,diagScore={},diagSeen={};
 function startDiagnostic(){diagIndex=0;diagScore={letters:0,words:0,sentences:0};diagSeen={letters:0,words:0,sentences:0};show('diagnosticScreen');$('diagGuideText').innerHTML='استمع جيدًا. لا بأس إن لم تعرف الإجابة — هذا الاختبار يختار لك التدريب المناسب.'+G('Listen carefully. It\'s okay not to know — this check finds the right starting point for you.');renderDiag()}
-function renderDiag(){const item=DIAG[diagIndex];$('diagCount').textContent=(diagIndex+1)+'/'+DIAG.length;$('diagDots').innerHTML=DIAG.map((_,i)=>`<span class="${i<diagIndex?'done':i===diagIndex?'current':''}"></span>`).join('');updateDiagMeters();renderItem($('diagItem'),item,ok=>{diagSeen[item.domain]++;if(ok)diagScore[item.domain]++;else logError('diagnostic-'+item.domain,item.speak||item.show||item.q);updateDiagMeters();diagIndex++;if(diagIndex>=DIAG.length){$('diagCount').textContent=DIAG.length+'/'+DIAG.length;later(finishDiagnostic,120)}else renderDiag()})}
+function renderDiag(){const item=DIAG[diagIndex];$('diagCount').textContent=(diagIndex+1)+'/'+DIAG.length;$('diagDots').innerHTML=DIAG.map((_,i)=>`<span class="${i<diagIndex?'done':i===diagIndex?'current':''}"></span>`).join('');updateDiagMeters();renderItem($('diagItem'),item,ok=>{diagSeen[item.domain]++;if(ok)diagScore[item.domain]++;else logError('diagnostic-'+item.domain,item.speak||item.show||item.q);updateDiagMeters();diagIndex++;if(diagIndex>=DIAG.length)finishDiagnostic();else renderDiag()})}
 function updateDiagMeters(){[['letters','meterLetters'],['words','meterWords'],['sentences','meterSentences']].forEach(([d,id])=>{const p=diagSeen[d]?Math.round(diagScore[d]/diagSeen[d]*100):0;$(id).style.width=p+'%'})}
 function finishDiagnostic(){const s=current();const per=d=>Math.round(diagScore[d]/DIAG.filter(x=>x.domain===d).length*100);const domains={letters:per('letters'),words:per('words'),sentences:per('sentences')};const total=Math.round((domains.letters+domains.words+domains.sentences)/3);const t=total<35?0:total<55?1:total<75?2:3;s.baseline={date:new Date().toISOString(),domains,total};s.tier=t;
  /* كل مهارة تبدأ من مستوى نطاقها في التشخيص */
  const dt=p=>p<35?0:p<55?1:p<80?2:3;s.skillTier={letters:dt(domains.letters),sounds:dt(domains.letters),wordReading:dt(domains.words),wordMeaning:dt(domains.words),sentenceBuild:dt(domains.sentences),sentenceListen:dt(domains.sentences),sentenceOrder:dt(domains.sentences),fluency:Math.min(dt(domains.words),dt(domains.sentences)),writing:Math.min(dt(domains.letters),dt(domains.words),2)};
  s.cefr=cefrFrom(total);s.diagnosticDone=true;/* الطالب الضعيف جدًا في الحروف يمر بفحص الحروف الـ28 قبل المحطة الأولى */if(domains.letters<50&&!s.completed[0])s.letterCheck=true;s.stage=0;s.mastery.letters=Math.min(70,domains.letters);s.mastery.wordReading=Math.min(60,domains.words);s.mastery.sentenceBuild=Math.min(50,domains.sentences);persist();
- overlay(`<div class="center"><div class="big-emoji">🎯</div><h2>اكتمل الاختبار!</h2>${G('Check complete!')}<div class="path-preview center-row"><span><span class="ab-icon" aria-hidden="true">أ ب ت</span> الحروف ${domains.letters}%</span><span>🧩 الكلمات ${domains.words}%</span><span>💬 الجمل ${domains.sentences}%</span></div><p>مستواك الآن: <b dir="ltr">${s.cefr}</b></p><div class="support-box">سنبدأ دائمًا من <b>الحروف</b> ثم الكلمات ثم الجمل، وصعوبة الأسئلة تناسب مستواك. تنتقل إلى المحطة التالية عندما تحصل على 80% أو أكثر.${G('We always start with letters, then words, then sentences. Questions match your level. Score 80% to open the next station.')}</div><p class="muted" id="diagAutoNext">سنفتح خريطة المغامرة تلقائيًا…</p><button class="big-btn primary" id="openWorld">ابدأ الرحلة الآن ▶</button></div>`,true);
-  let moved=false;
-  const goWorld=()=>{if(moved)return;moved=true;closeOverlay();prepareWorld();show('worldScreen')};
-  $('openWorld').onclick=goWorld;
-  later(goWorld,7000)
-}
+ overlay(`<div class="center"><div class="big-emoji">🎯</div><h2>اكتمل الاختبار!</h2>${G('Check complete!')}<div class="path-preview center-row"><span><span class="ab-icon" aria-hidden="true">أ ب ت</span> الحروف ${domains.letters}%</span><span>🧩 الكلمات ${domains.words}%</span><span>💬 الجمل ${domains.sentences}%</span></div><p>مستواك الآن: <b dir="ltr">${s.cefr}</b></p><div class="support-box">سنبدأ دائمًا من <b>الحروف</b> ثم الكلمات ثم الجمل، وصعوبة الأسئلة تناسب مستواك. تنتقل إلى المحطة التالية عندما تحصل على 80% أو أكثر.${G('We always start with letters, then words, then sentences. Questions match your level. Score 80% to open the next station.')}</div><button class="big-btn primary" id="openWorld">ابدأ الرحلة ▶</button></div>`);$('openWorld').onclick=()=>{closeOverlay();prepareWorld();show('worldScreen')}}
 
 
 /* ================= الخريطة ================= */
@@ -289,7 +234,7 @@ function prepareWorld(){const s=current();if(!s)return show('startScreen');refre
  document.querySelectorAll('.game-nav button').forEach(b=>{b.classList.toggle('active',b.dataset.tab==='world');b.onclick=()=>navTab(b.dataset.tab)});
  $('profileChip').onclick=showProfile;$('worldSoundBtn').textContent=settings.sound?'🔊':'🔇';$('worldSoundBtn').onclick=()=>{settings.sound=!settings.sound;persist();$('worldSoundBtn').textContent=settings.sound?'🔊':'🔇';beep(true)}}
 function selectStage(i,move){const s=current();if(!stageUnlocked(s,i))return;selectedStage=i;const st=STAGES[i];$('missionZone').innerHTML=esc(st.zone)+G(st.zoneEn);$('missionPlace').textContent=st.place;$('missionSkill').innerHTML=esc(st.skill)+G(st.skillEn);$('missionDesc').innerHTML=esc(st.desc)+G(st.descEn);$('missionCanDo').innerHTML='🎯 '+esc(st.canDo)+G(st.canDoEn);$('missionReward').innerHTML=`${st.reward} ${esc(st.rewardName)}${s.stars[i]?` <span class="mission-stars">${starText(s.stars[i])}</span>`:''}`;renderMissionList(i);if(i===0&&needsLetterCheck(s)){$('missionCanDo').innerHTML+=`<div class="lc-mini"><span class="ab-icon" aria-hidden="true">أ ب ت</span> فحص الحروف أولًا: تعرف <b>${knownCount(s)}</b> من 28 — تحتاج ${LC_TARGET} ${G('Letter check first')}</div>`}if(move){moveExplorer(i);sparkAtNode(i);if(i!==8)speak(st.skill,.85)}}
-function moveExplorer(i){const n=document.querySelector(`.station-node[data-stage="${i}"]`),ex=$('mamounTokenWrap')||$('explorer');if(!n||!ex)return;ex.style.left=n.style.getPropertyValue('--x');ex.style.top=n.style.getPropertyValue('--y')}
+function moveExplorer(i){const n=document.querySelector(`.station-node[data-stage="${i}"]`),ex=$('explorer');ex.style.left=n.style.getPropertyValue('--x');ex.style.top=n.style.getPropertyValue('--y')}
 function sparkAtNode(i){if(matchMedia('(prefers-reduced-motion: reduce)').matches)return;const n=document.querySelector(`.station-node[data-stage="${i}"]`),box=$('sparkles');for(let k=0;k<10;k++){const s=document.createElement('span');s.className='spark';s.textContent=k%2?'✨':'⭐';s.style.left=`calc(${n.style.getPropertyValue('--x')} + ${(Math.random()*50-25)}px)`;s.style.top=`calc(${n.style.getPropertyValue('--y')} + ${(Math.random()*40-20)}px)`;box.appendChild(s);setTimeout(()=>s.remove(),1000)}}
 function launchStage(i,mi,force){const s=current();if(i===0&&needsLetterCheck(s))return openLetterCheck();
  if(mi==null&&!force){mi=nextMi(s,i);if(mi<0)mi=Math.floor(Math.random()*MISSIONS[i].length);const a=missionAccess(s,i,mi);
@@ -319,7 +264,7 @@ function runMCQ(key,items,ctx,title,titleEn,onDone){
    `<p class="prompt-ar">${esc(x.prompt)}</p>${G(x.en)}<div class="activity-target ${x.targetClass||''}" data-target>${x.target}</div>`+
    `<div class="sound-actions">${x.speak?`<button class="control-btn" data-hear>🔊 استمع</button><button class="control-btn" data-slow>🐢 ببطء</button>`:''}${x.readOpts?`<button class="control-btn" data-readopts>🔊 اقرأ الخيارات</button>`:''}</div><div data-choices></div><div class="feedback" data-feed>${x.speak?'استمع ثم اختر.':'اختر الإجابة.'}${G(x.speak?'Listen, then choose.':'Choose the answer.')}</div><div class="after-actions" data-after></div>`;
   const q=s=>b.querySelector(s);
-  if(x.speak){prefetchSpeech(x.speak,false);q('[data-hear]').onpointerenter=()=>prefetchSpeech(x.speak,false);q('[data-slow]').onpointerenter=()=>prefetchSpeech(x.speak,true);q('[data-hear]').onclick=()=>speak(x.speak,.78);q('[data-slow]').onclick=()=>speak(x.speak,.5)}
+  if(x.speak){q('[data-hear]').onclick=()=>speak(x.speak,.78);q('[data-slow]').onclick=()=>speak(x.speak,.5)}
   const box=q('[data-choices]');
   const btns=renderOptions(box,x.opts,{withAudio:x.optAudio!==false,tl:x.optTL!==false,onPick:(idx)=>{
    const ok=idx===x.ans;lockAndMark(btns,idx,x.ans);beep(ok);reward(ok);
@@ -381,7 +326,7 @@ function actWordReading(ctx){const t=ctx.remedial?0:tierFor('wordReading');const
    q('[data-target]').innerHTML=`<span class="ar-text">${esc(w)}</span>${TL(w)}${v?G(v.e+' '+v.en):''}`;
    if(ok){const p=praise();feed.innerHTML=`<b>${p[0]}</b> ${helped?'(بمساعدة)':'⭐'}${G(p[1])}`;feed.className='feedback good'}
    else{logError('wordReading',w);feed.innerHTML='هذه هي الكلمة. استمع واقرأها معي.'+G('Here is the word. Listen and read it with me.');feed.className='feedback bad'}
-   later(()=>speak(w,.65),300);const af=q('[data-after]');plusEmit('say',{host:af,text:w,kind:'word'});nextButton(af,'',()=>{i++;if(i<words.length)draw();else endActivity('wordReading',score,words.length,ctx)})}
+   later(()=>speak(w,.65),300);const af=q('[data-after]');nextButton(af,'',()=>{i++;if(i<words.length)draw();else endActivity('wordReading',score,words.length,ctx)})}
  }
  draw()}
 
@@ -425,7 +370,7 @@ function runBuilder(key,list,ctx,race){let i=0,correct=0;const lostItems=new Set
   function advance(){i++;if(i<list.length)draw();else endActivity(key,correct,list.length,ctx)}
   q('[data-check]').onclick=()=>{if(finished)return;if(built.length<words.length){feed.className='feedback';feed.innerHTML='أكمل الجملة أولًا.'+G('Use all the words first.');return}
    const ok=built.map(x=>x.w).join(' ')===target;
-   if(ok){finished=true;clearInterval(rivalTimer);const first=tries===0&&!hinted&&!lostItems.has(i);if(first)correct++;else if(!race&&tries<=1)correct+=.5;beep(true);reward(true,first);const p=praise();feed.className='feedback good';feed.innerHTML=`<b>${p[0]}</b>${G(p[1])}`;slots.classList.add('solved');if(race){const pc=q('[data-player]');if(pc)pc.style.left='86%'}speak(target,.75);const af=q('[data-after]');if(!race)plusEmit('say',{host:af,text:target,kind:'sentence'});later(()=>nextButton(af,'',advance),600);return}
+   if(ok){finished=true;clearInterval(rivalTimer);const first=tries===0&&!hinted&&!lostItems.has(i);if(first)correct++;else if(!race&&tries<=1)correct+=.5;beep(true);reward(true,first);const p=praise();feed.className='feedback good';feed.innerHTML=`<b>${p[0]}</b>${G(p[1])}`;slots.classList.add('solved');if(race){const pc=q('[data-player]');if(pc)pc.style.left='86%'}speak(target,.75);const af=q('[data-after]');later(()=>nextButton(af,'',advance),600);return}
    tries++;beep(false);reward(false);
    /* نلوّن أول كلمة في غير مكانها */
    const wrongAt=built.findIndex((x,j)=>x.w!==words[j]);[...slots.children].forEach((c,j)=>c.classList.toggle('wrong-slot',j>=wrongAt));
@@ -482,7 +427,7 @@ function vowelledOf(bare){return Object.keys(VOCAB).find(k=>norm(k)===norm(bare)
 function letterName(l){const L=ALPHABET.find(x=>x.l===l);return L?L.name:l}
 
 /* لوح التتبّع: يرسم الطالب فوق الحرف الرمادي، ونقيس نسبة تغطية الحرف ونسبة الخروج عنه */
-function tracePad(host,glyph,{practice=false,onResult}={}){if(glyph==='ا')glyph='أ';
+function tracePad(host,glyph,{practice=false,onResult}={}){
  host.innerHTML=`<div class="trace-wrap"><canvas class="trace-guide" aria-hidden="true"></canvas><canvas class="trace-ink" aria-label="لوح الكتابة — ارسم فوق الحرف"></canvas><span class="trace-hint">☝️</span></div><div class="sound-actions trace-actions"><button class="control-btn" data-clear>🧽 امسح ${G('Clear')}</button><button class="big-btn primary" data-tcheck>تحقّق ✓</button></div><div class="feedback trace-feed" data-tfeed>ارسم بإصبعك فوق الحرف الرمادي. ${G('Trace over the grey letter with your finger.')}</div>`;
  const wrap=host.querySelector('.trace-wrap'),guide=host.querySelector('.trace-guide'),ink=host.querySelector('.trace-ink'),feed=host.querySelector('[data-tfeed]');
  const dpr=Math.min(2,window.devicePixelRatio||1);let W=0,font=null,drawn=false,drawing=false,last=null,done=false;
@@ -701,8 +646,7 @@ function renderImportPreview(list,col,headers){const st=$('impStatus');const ok=
  $('impPreview').querySelectorAll('[data-i]').forEach(c=>c.onchange=()=>{list[+c.dataset.i].include=c.checked;c.closest('tr').classList.toggle('muted-row',!c.checked);$('impN').textContent=list.filter(x=>x.include).length});
  $('impGo').onclick=()=>{const chosen=list.filter(x=>x.include&&x.name);if(!chosen.length)return flash('لم يتم اختيار أي طالب');
   if(CLOUD){const btn=$('impGo');btn.disabled=true;btn.textContent='جارٍ الإنشاء في قاعدة البيانات...';
-   const pending=chosen.map(x=>{const s=blankStudent(x.name,x.grade,x.section,DEFAULT_PIN,x.help);s.pinPrompt=true;s.imported=new Date().toISOString();return s});
-   rpc('admin_create_students',{p_token:cloud.token,p_list:pending.map(s=>({id:s.id,code:s.code,name:s.name,grade:s.grade,section:s.section,pin:DEFAULT_PIN,data:JSON.parse(snapOf(s))}))})
+   rpc('admin_create_students',{p_token:cloud.token,p_list:chosen.map(x=>({name:x.name,grade:x.grade,section:x.section,data:{support:x.help,translit:x.help==='en',pinPrompt:true,imported:new Date().toISOString(),completed:Array(8).fill(false),mastery:{},points:0,stage:0,tier:0,cefr:'Pre-A1'}}))})
     .then(made=>{const created=made.map(mergeStudent);persist();showImportDone(created)}).catch(e=>{btn.disabled=false;btn.textContent='إنشاء الحسابات';flash(cloudMsg(e))});return}
   const created=chosen.map(x=>{const s=blankStudent(x.name,x.grade,x.section,DEFAULT_PIN,x.help);s.pinPrompt=true;s.imported=new Date().toISOString();db.students.push(s);return s});persist();showImportDone(created)}}
 
@@ -714,21 +658,21 @@ function printLoginCards(list){const w=window.open('','_blank');if(!w)return fla
  w.document.write(`<!doctype html><html lang="ar" dir="rtl"><head><meta charset="utf-8"><title>بطاقات الدخول</title><style>@page{size:A4;margin:10mm}body{font-family:Tahoma,Arial;margin:0}.grid{display:grid;grid-template-columns:1fr 1fr;gap:6mm}.card{border:2px dashed #7fa6b8;border-radius:10px;padding:5mm 6mm;height:44mm;box-sizing:border-box;display:flex;gap:5mm;align-items:center;break-inside:avoid}.card img{width:18mm}.n{font-size:17pt;font-weight:bold;color:#0d3f65;margin-bottom:2mm}.r{font-size:12pt;margin:1mm 0}.r b{font-size:16pt;letter-spacing:1px;font-family:Arial}.s{font-size:9pt;color:#555;margin-top:2mm}.e{font-size:8.5pt;color:#555;direction:ltr;text-align:right}</style></head><body><div class="grid">${list.map(s=>`<div class="card"><img src="${base}assets/logo.webp" alt=""><div><div class="n">${esc(s.name)}</div><div class="r">رمز الطالب: <b dir="ltr">${esc(s.code)}</b></div><div class="r">الرقم السري: <b dir="ltr">${pinIsDefault(s)?DEFAULT_PIN:'••••'}</b></div><div class="s">مغامرة المأمون — الصف ${s.grade}/${esc(s.section)}</div><div class="e">Student code + PIN. You can change your PIN when you log in.</div></div></div>`).join('')}</div><script>setTimeout(()=>print(),500)<\/script></body></html>`);w.document.close()}
 
 /* ================= الرقم السري: الاختيار في أول دخول ================= */
-function askPinChoice(s,then){overlay(`<div class="center"><div class="big-emoji">🔐</div><h2>مرحبًا ${esc(s.name)}!</h2>${G('Welcome!')}<p>رقمك السري الآن <b dir="ltr">1234</b>. هل تريد أن تغيّره إلى رقم خاص بك؟</p>${G('Your PIN is 1234. Do you want to change it to your own PIN?')}<div class="form-actions center-row"><button class="big-btn ghost" id="pinKeep">المواصلة بنفس الرقم ${G('Keep 1234')}</button><button class="big-btn primary" id="pinChange">تغيير الرقم السري ${G('Change PIN')}</button></div></div>`,true);
+function askPinChoice(s,then){overlay(`<div class="center"><div class="big-emoji">🔐</div><h2>مرحبًا ${esc(s.name)}!</h2>${G('Welcome!')}<p>رقمك السري الآن <b dir="ltr">1234</b>. هل تريد أن تغيّره إلى رقم خاص بك؟</p>${G('Your PIN is 1234. Do you want to change it to your own PIN?')}<div class="form-actions center-row"><button class="big-btn ghost" id="pinKeep">المواصلة بنفس الرقم ${G('Keep 1234')}</button><button class="big-btn primary" id="pinChange">تغيير الرقم السري ${G('Change PIN')}</button></div></div>`);
  $('pinKeep').onclick=()=>{s.pinPrompt=false;persist();closeOverlay();then()};
  $('pinChange').onclick=()=>changeStudentPin(s,then)}
-function changeStudentPin(s,then){overlay(`<div class="center"><h2>🔐 رقم سري جديد</h2>${G('New PIN')}<p>اختر 4 أرقام تتذكرها. ${G('Choose 4 numbers you can remember.')}</p><div class="form-field"><label for="sp1">الرقم الجديد <small dir="ltr">New PIN</small></label><input id="sp1" type="password" inputmode="numeric" maxlength="4" dir="ltr" class="pin-input" autocomplete="off"></div><div class="form-field"><label for="sp2">أعد كتابته <small dir="ltr">Type it again</small></label><input id="sp2" type="password" inputmode="numeric" maxlength="4" dir="ltr" class="pin-input" autocomplete="off"></div><div class="form-actions center-row"><button class="big-btn ghost" id="spCancel">رجوع</button><button class="big-btn primary" id="spSave">حفظ ✓</button></div></div>`,!!s.pinPrompt);
+function changeStudentPin(s,then){overlay(`<div class="center"><h2>🔐 رقم سري جديد</h2>${G('New PIN')}<p>اختر 4 أرقام تتذكرها. ${G('Choose 4 numbers you can remember.')}</p><div class="form-field"><label for="sp1">الرقم الجديد <small dir="ltr">New PIN</small></label><input id="sp1" type="password" inputmode="numeric" maxlength="4" dir="ltr" class="pin-input" autocomplete="off"></div><div class="form-field"><label for="sp2">أعد كتابته <small dir="ltr">Type it again</small></label><input id="sp2" type="password" inputmode="numeric" maxlength="4" dir="ltr" class="pin-input" autocomplete="off"></div><div class="form-actions center-row"><button class="big-btn ghost" id="spCancel">رجوع</button><button class="big-btn primary" id="spSave">حفظ ✓</button></div></div>`);
  $('spCancel').onclick=()=>{if(s.pinPrompt)askPinChoice(s,then);else{closeOverlay();then&&then()}};
  const save=()=>{const a=toLatinDigits($('sp1').value.trim()),b=toLatinDigits($('sp2').value.trim());if(!/^\d{4}$/.test(a))return flash('اكتب 4 أرقام — Use 4 digits');if(a!==b)return flash('الرقمان غير متطابقين — PINs do not match');if(a===DEFAULT_PIN)return flash('اختر رقمًا غير 1234 — Choose a PIN other than 1234');
   if(CLOUD){$('spSave').disabled=true;return rpc('student_set_pin',{p_token:cloud.token,p_new:a}).then(()=>{s.pinDefault=false;s.pinPrompt=false;s.pinChanged=new Date().toISOString();persist();pinSaved()}).catch(e=>{$('spSave').disabled=false;flash(cloudMsg(e))})}
   s.pin=a;s.pinPrompt=false;s.pinChanged=new Date().toISOString();persist();pinSaved()};
- const pinSaved=()=>{overlay(`<div class="center"><div class="big-emoji">✅</div><h2>تم حفظ رقمك السري</h2>${G('Your new PIN is saved.')}<p>احفظه جيدًا ولا تخبر به أحدًا.</p>${G('Remember it and keep it secret.')}<button class="big-btn primary" id="spDone">متابعة ▶</button></div>`,true);$('spDone').onclick=()=>{closeOverlay();then&&then()}};
+ const pinSaved=()=>{overlay(`<div class="center"><div class="big-emoji">✅</div><h2>تم حفظ رقمك السري</h2>${G('Your new PIN is saved.')}<p>احفظه جيدًا ولا تخبر به أحدًا.</p>${G('Remember it and keep it secret.')}<button class="big-btn primary" id="spDone">متابعة ▶</button></div>`);$('spDone').onclick=()=>{closeOverlay();then&&then()}};
  $('spSave').onclick=save;$('sp2').onkeydown=e=>{if(e.key==='Enter')save()}}
 
 /* إضافة طالب واحد من لوحة الإدارة */
 function addOneStudent(){overlay(`<h2>➕ طالب جديد</h2><div class="form-field"><label for="aoName">اسم الطالب</label><input id="aoName"></div><div class="form-row"><div class="form-field"><label for="aoGrade">الصف</label><select id="aoGrade">${[1,2,3,4,5,6].map(g=>`<option>${g}</option>`).join('')}</select></div><div class="form-field"><label for="aoSec">الشعبة</label><input id="aoSec" value="أ"></div></div><div class="form-field"><label for="aoHelp">لغة المساعدة</label><select id="aoHelp"><option value="en">English</option><option value="off">عربي فقط</option></select></div><p class="muted">الرقم السري المبدئي 1234، ويُسأل الطالب في أول دخول إن كان يريد تغييره.</p><div class="form-actions"><button class="big-btn ghost" id="cancelOverlay">إلغاء</button><button class="big-btn gold" id="aoGo">إنشاء</button></div>`);$('cancelOverlay').onclick=closeOverlay;
  $('aoGo').onclick=()=>{const name=$('aoName').value.trim();if(!name)return flash('اكتب اسم الطالب');const g=+$('aoGrade').value,sec=$('aoSec').value.trim()||'أ',h=$('aoHelp').value;
-  if(CLOUD){$('aoGo').disabled=true;const pending=blankStudent(name,g,sec,DEFAULT_PIN,h);pending.pinPrompt=true;return rpc('admin_create_students',{p_token:cloud.token,p_list:[{id:pending.id,code:pending.code,name:pending.name,grade:pending.grade,section:pending.section,pin:DEFAULT_PIN,data:JSON.parse(snapOf(pending))}]}).then(m=>{const s=mergeStudent(m[0]);persist();showImportDone([s])}).catch(e=>{$('aoGo').disabled=false;flash(cloudMsg(e))})}
+  if(CLOUD){$('aoGo').disabled=true;return rpc('admin_create_students',{p_token:cloud.token,p_list:[{name,grade:g,section:sec,data:{support:h,translit:h==='en',pinPrompt:true,completed:Array(8).fill(false),mastery:{},points:0,stage:0,tier:0,cefr:'Pre-A1'}}]}).then(m=>{const s=mergeStudent(m[0]);persist();showImportDone([s])}).catch(e=>{$('aoGo').disabled=false;flash(cloudMsg(e))})}
   const s=blankStudent(name,g,sec,DEFAULT_PIN,h);s.pinPrompt=true;db.students.push(s);persist();showImportDone([s])}}
 
 /* ================= المهام والوتيرة =================
@@ -793,7 +737,7 @@ function finishStage(key,correct,total){const s=current(),score=Math.round(corre
  if(pass){const stars=score>=100?3:score>=90?2:1;const r=recordMission(s,i,mi,score);s.points+=r.firstPass?15+stars*5:(stars>=3?3:1);if(r.stationDone)s.points+=25;
   let levelUp=false;const t=tierFor(key);if(score>=95&&t<3&&!r.wasDone){s.skillTier[key]=t+1;levelUp=true}
   s.failStreak=s.failStreak||{};s.failStreak[key]=0;persist();refreshHud();confetti();beep(true);
-  const st=STAGES[i];plusEmit('mission',{pass:true,stars,score,stationDone:r.stationDone,firstPass:r.firstPass,reward:st.reward,rewardName:st.rewardName,place:st.place,stage:i});const nx=nextMi(s,i);const acc=nx>=0?missionAccess(s,i,nx):null;
+  const st=STAGES[i];const nx=nextMi(s,i);const acc=nx>=0?missionAccess(s,i,nx):null;
   coach(r.stationDone?'أَكْمَلْتَ المَحَطَّةَ كُلَّهَا!':'أَحْسَنْتَ! أَتْقَنْتَ هَذِهِ المُهِمَّةَ.',r.stationDone?'You completed the whole station!':'Well done! You mastered this mission.','happy');
   let nextHtml='';
   if(r.stationDone)nextHtml=`<div class="sticker-won"><span>${st.reward}</span><b>${esc(st.rewardName)}</b>${G('New sticker! The next station is open.')}</div>`;
@@ -804,7 +748,7 @@ function finishStage(key,correct,total){const s=current(),score=Math.round(corre
   b.querySelector('[data-retry]').onclick=()=>launchStage(i,mi);const nb=b.querySelector('[data-next]');if(nb)nb.onclick=()=>launchStage(i,nx);const kb=b.querySelector('[data-keep]');if(kb)kb.onclick=()=>startPractice(i);
   b.querySelector('[data-map]').onclick=()=>{prepareWorld();show('worldScreen');later(()=>{const target=r.stationDone?Math.min(8,i+1):i;if(stageUnlocked(s,target)){moveExplorer(target);sparkAtNode(target);selectStage(target,false)}},400)}}
  else{s.failStreak=s.failStreak||{};s.failStreak[key]=(s.failStreak[key]||0)+1;let eased=false;if(s.failStreak[key]>=2&&tierFor(key)>0){s.skillTier[key]=tierFor(key)-1;s.failStreak[key]=0;eased=true}
-  recordMission(s,i,mi,score);persist();plusEmit('mission',{pass:false,score,stage:i});coach('سَنَتَدَرَّبُ مَعًا خُطْوَةً خُطْوَةً.','We will practise together, step by step.','think');
+  recordMission(s,i,mi,score);persist();coach('سَنَتَدَرَّبُ مَعًا خُطْوَةً خُطْوَةً.','We will practise together, step by step.','think');
   b.innerHTML=`<div class="stage-finish"><div class="trophy">🛟</div><h2>سنرفع مستواك خطوة بخطوة</h2>${G('Let\'s practise a little more.')}<div class="mastery-badge support-score">${score}%</div><p>تحتاج إلى 80% لإتقان هذه المهمة. سنلعب تدريبًا أسهل أولًا ثم تعيد المحاولة.</p>${G('You need 80% to master this mission. First an easier practice, then try again.')}${eased?`<p class="level-up">سنجعل الأسئلة أسهل قليلًا. ${G('The questions will be a little easier.')}</p>`:''}<button class="big-btn gold" data-support>ابدأ التدريب ▶</button></div>`;
   b.querySelector('[data-support]').onclick=()=>{const s2=current();s2.supports[key]=(s2.supports[key]||0)+1;persist();renderStageActivity({remedial:true})}}}
 
@@ -917,103 +861,45 @@ function actReview(ctx){const m=curMission();let items;
   items=shuffle([...hearWordItems(t,ctx.remedial?2:5,ctx),...pics])}
  const [ti,te]=mTitle();runMCQ(m.k,items,ctx,ti,te)}
 
-/* يحافظ على أبعاد الخريطة الأصلية ويترك مساحة لبطاقة المهمة */
-const MAP_AR=3456/2048; /* V37: خريطة HD الجديدة */
-function fitMap(){
- const world=document.querySelector('#worldScreen .world'),box=$('mapBox');if(!world||!box)return;
- const mobile=innerWidth<=760,panel=$('missionPanel');
- const W=world.clientWidth,H=world.clientHeight;
- const pw=mobile?0:((panel&&panel.offsetWidth)||0)+28;
- const ph=mobile?148:0;
- const aw=Math.max(220,W-pw-16),ah=Math.max(180,H-ph-16);
- let w=Math.min(aw,ah*MAP_AR),h=w/MAP_AR;
- box.style.width=w+'px';box.style.height=h+'px';
- box.style.left=(8+(aw-w)/2)+'px';box.style.top=(8+(ah-h)/2)+'px';
- box.style.setProperty('--mw',w+'px');
- /* V37: شارات المحطات ونقاط المهام تصغر مع الخريطة حتى لا تتزاحم على iPad والهاتف */
- box.style.setProperty('--ms',String(Math.max(.55,Math.min(1,w/1100))))
-}
-
-/* ================= نقاط المهام على خريطة اللعب V36.14 =================
-   كل محطة لها mini-board خاص بها مثل ألعاب الـparty.
-   نقاط المهمة تحيط بالمعلم نفسه، والمأمون يقف على المهمة الحالية. */
+/* ================= نقاط المهام على طريق الخريطة =================
+   مهام كل محطة تظهر نقاطًا على الطريق بينها وبين المحطة التالية،
+   فيرى الطالب كم بقي له ليصل، ويمشي المستكشف عليها كلما أتقن مهمة. */
 function nodePos(i){const n=document.querySelector(`.station-node[data-stage="${i}"]`);return n?{x:parseFloat(n.style.getPropertyValue('--x')),y:parseFloat(n.style.getPropertyValue('--y'))}:null}
-function clampMap(v,min=4,max=96){return Math.max(min,Math.min(max,v))}
-/*PLUS V38.4: نقاط المهام توضع على طريق الخرز المرسوم بين الجزر (لا متجمعة حول الجزيرة).
-  كل محطة لها جزء من الطريق يخرج منها؛ الإحداثيات نسبة مئوية من صورة bahrain-map-hd.webp */
-const MAP_ROUTES={
- 0:[[46.6,20],[43.4,20.8],[40.3,22.4],[37.3,25],[35,26.4],[33.4,27.4]],
- 1:[[43.8,44.3],[41.3,46.1],[38.8,47.8],[36.3,49.6],[33.8,51.4],[31.6,52.7],[29.4,54.3]],
- 2:[[26.9,34.6],[28.8,35.5],[30.9,36.7],[33.1,38],[35.3,38.8],[36.9,39.2]],
- 3:[[21.9,64.1],[24.4,65.9],[26.9,66.7],[29.4,66.8],[31.9,66.5],[34.4,65.9],[36.9,65.2]],
- 4:[[67.2,25.1],[65.3,27.2],[63.4,29.5],[61.9,32.2],[60.3,34.3],[58.8,35.7]],
- 5:[[80.6,55.7],[81.1,58.5],[80.8,61.4],[80,63.8]],
- 6:[[58.4,68.4],[60.6,69.8],[62.5,70.9],[64.4,71.4],[66.3,71.7]],
- 7:[[69.4,75.9],[67.5,77.8],[65.3,79.6],[63.1,81.2],[60.9,82.3],[58.8,83]]
-};
-function routePoint(pts,f){const seg=[];let L=0;for(let j=1;j<pts.length;j++){const d=Math.hypot(pts[j][0]-pts[j-1][0],(pts[j][1]-pts[j-1][1])*.6);seg.push(d);L+=d}
- let t=f*L;for(let j=1;j<pts.length;j++){if(t<=seg[j-1]||j===pts.length-1){const u=seg[j-1]?Math.min(1,t/seg[j-1]):0;return{x:pts[j-1][0]+(pts[j][0]-pts[j-1][0])*u,y:pts[j-1][1]+(pts[j][1]-pts[j-1][1])*u}}t-=seg[j-1]}return{x:pts[0][0],y:pts[0][1]}}
-function dotPos(i,k,n){
- const r=MAP_ROUTES[i];
- if(r){const f=n===1?.5:.16+.76*k/(n-1);return routePoint(r,f)}
- const a=nodePos(i);if(!a)return{x:50,y:50};return{x:clampMap(a.x),y:clampMap(a.y+6.4,5,94)}
-}
-function setExplorerPoint(p){
- const ex=$('mamounTokenWrap')||$('explorer');if(!ex||!p)return;
- ex.style.left=p.x+'%';ex.style.top=p.y+'%';
-}
-function drawPathDots(){
- const s=current(),world=$('mapBox');if(!s||!world)return;fitMap();
- world.querySelectorAll('.path-dot').forEach(d=>d.remove());
-
- let currentPoint=null;
- for(let i=0;i<8;i++){
-  const ms=MISSIONS[i],unl=stageUnlocked(s,i);
-  ms.forEach((m,k)=>{
-   const p=dotPos(i,k,ms.length),done=mDone(s,i,k),acc=unl?missionAccess(s,i,k):{ok:false,icon:'🔒',why:'مقفلة'};
+/* نختار مواقع النقاط على الطريق في أماكن خالية من أسماء المحطات واللوحات */
+let dotCache=null;
+function freeFractions(i,n){const world=$('mapBox');const a=nodePos(i),b=nodePos(i+1)||a;if(!world)return null;const W=world.getBoundingClientRect();
+ const blocks=[...world.querySelectorAll('.station-node,.station-node span')].map(el=>{const r=el.getBoundingClientRect();return{l:r.left-W.left-8,r:r.right-W.left+8,t:r.top-W.top-8,b:r.bottom-W.top+8}});
+ const free=[];for(let f=.08;f<=.92;f+=.01){const x=(a.x+(b.x-a.x)*f)/100*W.width,y=(a.y+(b.y-a.y)*f)/100*W.height;if(!blocks.some(k=>x>k.l&&x<k.r&&y>k.t&&y<k.b))free.push(f)}
+ if(free.length<n)return null;
+ /* نوزع النقاط بالتساوي على المواقع الخالية */return[...Array(n)].map((_,k)=>free[Math.round((k+.5)*free.length/n-.5)])}
+function dotPos(i,k,n){const a=nodePos(i),b=nodePos(i+1)||a;dotCache=dotCache||{};const key=i+':'+n;if(!(key in dotCache))dotCache[key]=freeFractions(i,n);const fr=dotCache[key];const f=fr?fr[k]:.24+.52*(k+.5)/n;return{x:a.x+(b.x-a.x)*f,y:a.y+(b.y-a.y)*f}}
+/* الخريطة تحافظ على أبعاد الصورة الأصلية، فتبقى أسماء المحطات فوق معالمها تمامًا */
+const MAP_AR=1536/928;
+function fitMap(){const world=document.querySelector('.world'),box=$('mapBox');if(!world||!box)return;const panel=$('missionPanel');const mobile=innerWidth<=760;
+ const W=world.clientWidth,H=world.clientHeight;const pw=mobile?0:((panel&&panel.offsetWidth)||0)+28;const ph=mobile?178:0;
+ const aw=Math.max(200,W-pw-16),ah=Math.max(160,H-ph-16);let w=Math.min(aw,ah*MAP_AR),h=w/MAP_AR;
+ box.style.width=w+'px';box.style.height=h+'px';box.style.left=(8+(aw-w)/2)+'px';box.style.top=(8+(ah-h)/2)+'px';box.style.setProperty('--mw',w+'px')}
+function drawPathDots(){const s=current();const world=$('mapBox');if(!s||!world)return;dotCache=null;fitMap();world.querySelectorAll('.path-dot').forEach(d=>d.remove());
+ const trail=[];let here=null;
+ for(let i=0;i<8;i++){const ms=MISSIONS[i],unl=stageUnlocked(s,i);const a=nodePos(i);if(!a)continue;
+  if(unl){trail.push(a);if(!s.completed[i])here=here||a}
+  ms.forEach((m,k)=>{const p=dotPos(i,k,ms.length);const done=mDone(s,i,k);const acc=unl?missionAccess(s,i,k):{ok:false,icon:'🔒'};
    const st=done?'done':!unl?'locked':acc.ok?'next':acc.tomorrow?'tomorrow':'locked';
-   const d=document.createElement('button');
-   d.className='path-dot stage-checkpoint '+st+(m.gate?' gate':'');
-   d.dataset.stage=String(i);d.dataset.mission=String(k);d.dataset.step=String(k+1);d.dataset.total=String(ms.length);
-   d.style.left=p.x+'%';d.style.top=p.y+'%';
-   d.innerHTML=`<span>${done?'★':m.gate?'🚪':st==='tomorrow'?'🌙':st==='next'?k+1:'🔒'}</span>`;
-   d.title=m.n+' — '+m.en;
-   d.setAttribute('aria-label',`${STAGES[i].place}: المهمة ${k+1} من ${ms.length} — ${m.n} (${done?'مكتملة':acc.ok?'متاحة':acc.why||'مقفلة'})`);
-   if(!done&&unl&&!currentPoint&&(acc.ok||acc.tomorrow)){currentPoint=p;d.classList.add('current-checkpoint')}
-   d.onclick=e=>{
-    e.stopPropagation();
-    if(!unl)return flash('المحطة مقفلة — Station locked');
-    if(selectedStage!==i||!d.classList.contains('armed')){
-      world.querySelectorAll('.path-dot.armed').forEach(x=>x.classList.remove('armed'));
-      selectStage(i,false);d.classList.add('armed');
-      const it=document.querySelector(`#missionList .ml-item[data-mi="${k}"]`);
-      if(it){it.classList.add('flash');setTimeout(()=>it.classList.remove('flash'),900);it.scrollIntoView({block:'nearest'})}
-      setExplorerPoint(p);speak(m.n,.9);return
-    }
-    if(acc.check)return openLetterCheck();
-    if(!acc.ok)return acc.tomorrow?startPractice(i,acc):flash(acc.why);
-    launchStage(i,k)
-   };
+   const d=document.createElement('button');d.className='path-dot '+st+(m.gate?' gate':'');d.style.left=p.x+'%';d.style.top=p.y+'%';
+   d.innerHTML=`<span>${done?'★':m.gate?'🚪':st==='tomorrow'?'🌙':st==='next'?k+1:''}</span>`;d.title=m.n+' — '+m.en;d.setAttribute('aria-label',`${STAGES[i].place}: ${m.n} (${done?'مكتملة':acc.ok?'متاحة':acc.why||'مقفلة'})`);
+   d.onclick=e=>{e.stopPropagation();if(!unl)return flash('المحطة مقفلة — Station locked');
+    /* اللمسة الأولى تختار المحطة، والثانية تبدأ المهمة */
+    if(selectedStage!==i||!d.classList.contains('armed')){world.querySelectorAll('.path-dot.armed').forEach(x=>x.classList.remove('armed'));selectStage(i,false);d.classList.add('armed');const it=document.querySelector(`#missionList .ml-item[data-mi="${k}"]`);if(it){it.classList.add('flash');setTimeout(()=>it.classList.remove('flash'),900);it.scrollIntoView({block:'nearest'})}speak(m.n,.9);return}
+    if(acc.check)return openLetterCheck();if(!acc.ok)return acc.tomorrow?startPractice(i,acc):flash(acc.why);launchStage(i,k)};
    world.appendChild(d);
-  });
+   if(unl&&done&&(i<s.stage||!s.completed[i]))trail.push(p);if(!s.completed[i]&&done)here=p});
  }
-
- const svg=document.querySelector('.learning-route');
- if(svg){
-  const route=[...Array(9)].map((_,i)=>nodePos(i)).filter(Boolean);
-  const line=$('learningRouteLine');if(line)line.setAttribute('points',route.map(p=>`${p.x},${p.y}`).join(' '));
-  let done=svg.querySelector('#learningRouteDone');
-  if(!done){done=document.createElementNS('http://www.w3.org/2000/svg','polyline');done.id='learningRouteDone';svg.appendChild(done)}
-  const upto=route.slice(0,Math.min(route.length,Math.max(1,(Number(s.stage)||0)+1)));
-  done.setAttribute('points',upto.map(p=>`${p.x},${p.y}`).join(' '))
- }
-
- if(!currentPoint){
-  const si=Math.min(Number(s.stage)||0,8);
-  currentPoint=nodePos(si);
- }
- if(currentPoint)setExplorerPoint(currentPoint);
-}
+ if(stageUnlocked(s,8))trail.push(nodePos(8));
+ /* الجزء الذي قطعه الطالب من الطريق يظهر ذهبيًا */
+ const svg=document.querySelector('.learning-route');if(svg){let done=svg.querySelector('#learningRouteDone');if(!done){done=document.createElementNS('http://www.w3.org/2000/svg','polyline');done.id='learningRouteDone';svg.appendChild(done)}
+  const upto=[];for(const p of trail){upto.push(p);if(here&&p===here)break}done.setAttribute('points',upto.filter(Boolean).map(p=>`${p.x},${p.y}`).join(' '))}
+ /* المستكشف يقف عند آخر مهمة أتقنها */
+ const ex=$('explorer');const pos=here||nodePos(Math.min(s.stage,8));if(ex&&pos){ex.style.left=pos.x+'%';ex.style.top=pos.y+'%'}}
 
 /* إعادة رسم النقاط عند تغيير حجم الشاشة أو تدويرها */
 let dotResizeT=null;window.addEventListener('resize',()=>{clearTimeout(dotResizeT);dotResizeT=setTimeout(()=>{if($('worldScreen').classList.contains('active')){fitMap();drawPathDots()}},200)});
@@ -1081,7 +967,7 @@ function cloudLogoutLocal(){/* خصوصية الأجهزة المشتركة: ل�
 /* ===== الدخول ===== */
 async function cloudStudentLogin(code,pin){const r=await rpc('student_login',{p_code:code,p_pin:pin});const s=mergeStudent(r.student);cloud={token:r.token,role:'student',id:s.id,lastSnap:snapOf(s),base:s.serverUpdatedAt};saveCloud();session={role:'student',id:s.id};s.lastLogin=new Date().toISOString();persist();setSync('ok');return s}
 async function cloudAdminLogin(user,pin){const r=await rpc('admin_login',{p_user:user,p_pin:pin});cloud={token:r.token,role:'admin',pinDefault:r.pinDefault};saveCloud();await cloudLoadAdmin();session={role:'admin'};persist();setSync('ok')}
-async function cloudLoadAdmin(){const list=await rpc('admin_list',{p_token:cloud.token});db.students=[];syncSnap={};list.forEach(mergeStudent);const maxCode=db.students.reduce((m,s)=>{const x=String(s.code||'').toUpperCase().match(/^MAM-(\d+)$/);return x?Math.max(m,+x[1]||0):m},0);db.counter=Math.max(+db.counter||0,maxCode);pacingSnap=JSON.stringify(db.pacing||{});snapAudio();persist()}
+async function cloudLoadAdmin(){const list=await rpc('admin_list',{p_token:cloud.token});db.students=[];syncSnap={};list.forEach(mergeStudent);pacingSnap=JSON.stringify(db.pacing||{});snapAudio();persist()}
 async function cloudLogout(){const t=cloud.token;cloudLogoutLocal();if(t){try{await rpc('session_logout',{p_token:t})}catch{}}}
 
 /* ===== بدء التشغيل ===== */
@@ -1219,8 +1105,8 @@ function showLetter(i){const L=ALPHABET[i];document.querySelectorAll('.alpha-btn
  <div class="ai-pronunciation"><div class="ai-pronunciation-head"><h4>🎤 مدرب النطق الذكي</h4><span class="ai-badge">✦ OpenAI</span></div><p class="note">اختَر صوتًا، استمع إليه، ثم انطقه. سيعطيك المأمون تغذية راجعة مباشرة.</p><div class="ai-targets">${aiTargets.map((t,j)=>`<button class="ai-target ${j===0?'sel':''}" data-ai-target="${esc(t)}">${esc(t)}</button>`).join('')}</div><div class="ai-pronounce-row"><button id="aiPronounceBtn" class="ai-mic-btn">🎤 انطق الآن</button><span class="ai-target-now">سأستمع إلى: <b id="aiTargetNow">${esc(L.name)}</b></span></div><div id="aiPronunciationStatus" class="ai-pronunciation-status">اضغط على «انطق الآن»، وقل الصوت بوضوح.</div><small class="ai-privacy">🔒 لا نرسل اسم الطالب أو رمزه. يُرسل فقط مقطع النطق القصير والصوت المطلوب للتقييم.</small></div>
  <h4>أشكال الحرف ${G('Letter shapes in a word')}</h4><div class="lc-row forms">${letterForms(L).map(([ar,en,f])=>`<div class="lc-form"><b>${f}</b><small>${ar}${G(en)}</small></div>`).join('')}</div>${L.joins?'':`<p class="note">هذا الحرف لا يتصل بالحرف الذي بعده. ${G('This letter never joins to the letter after it.')}</p>`}
  <h4>كلمة ${G('Example word')}</h4><button class="lc-word" data-say="${esc(L.word)}"><span class="pic-big">${L.e}</span><span class="ar-text">${esc(L.word)}</span><span class="tl always" dir="ltr">${esc(translit(L.word))}</span>${G(L.en)}</button><h4>✍️ اكتب الحرف ${G('Write the letter')}</h4><div data-trace></div>`;
- $('letterCard').querySelectorAll('[data-say]').forEach(b=>b.onclick=()=>{const t=b.dataset.say;speak(t,.82);const hit=[...document.querySelectorAll('.ai-target')].find(x=>x.dataset.aiTarget===t);if(hit){aiPronunciationTarget=t;document.querySelectorAll('.ai-target').forEach(x=>x.classList.toggle('sel',x===hit));if($('aiTargetNow'))$('aiTargetNow').textContent=t}});
- bindAIPronunciation();tracePad($('letterCard').querySelector('[data-trace]'),L.l,{practice:true});later(()=>speak(L.name,.82),150)}
+ $('letterCard').querySelectorAll('[data-say]').forEach(b=>b.onclick=()=>{const t=b.dataset.say;speak(t,isLongVowelSyllable(t)?.88:.68);const hit=[...document.querySelectorAll('.ai-target')].find(x=>x.dataset.aiTarget===t);if(hit){aiPronunciationTarget=t;document.querySelectorAll('.ai-target').forEach(x=>x.classList.toggle('sel',x===hit));if($('aiTargetNow'))$('aiTargetNow').textContent=t}});
+ bindAIPronunciation();tracePad($('letterCard').querySelector('[data-trace]'),L.l,{practice:true});later(()=>speak(L.name,.7),150)}
 
 /* ================= الإدارة ================= */
 function adminLogin(){overlay(`<h2>دخول الإدارة</h2><div class="form-field"><label for="au">اسم المستخدم</label><input id="au" autocomplete="off" dir="ltr"></div><div class="form-field"><label for="ap">الرقم السري</label><input id="ap" type="password" autocomplete="off" dir="ltr"></div><div class="form-actions"><button class="big-btn ghost" id="cancelOverlay">إلغاء</button><button class="big-btn primary" id="adminGo">دخول</button></div>`);$('cancelOverlay').onclick=closeOverlay;const go=()=>{const u=$('au').value.trim(),p=$('ap').value.trim();
@@ -1284,29 +1170,18 @@ function launchSmartPractice(){const s=current();if(!s)return;if(!s.diagnosticDo
 function navTab(tab){if(tab==='profile')showProfile();else if(tab==='practice')launchSmartPractice();else if(tab==='lab')openLab('worldScreen');else if(tab==='write')openWorkshop();else if(tab==='admin')adminLogin()}
 function bindToggles(){document.querySelectorAll('[data-toggle="help"]').forEach(b=>b.onclick=toggleHelp);document.querySelectorAll('[data-toggle="tl"]').forEach(b=>b.onclick=toggleTranslit)}
 function logout(){if(CLOUD&&cloud.token){cloudLogout();applyLearnerPrefs();show('startScreen');refreshResume();return}session=null;persist();applyLearnerPrefs();show('startScreen');refreshResume()}
-function refreshResume(){
- const box=$('resumeBox'),s=current(),actions=document.querySelector('#startScreen .v36-actions');
- if(!box)return;
- if(!s){box.classList.add('hidden');return}
- if(actions&&box.parentElement!==actions)actions.appendChild(box);
- box.classList.remove('hidden');
- box.innerHTML=`<button type="button" class="big-btn resume-journey-btn" id="resumeBtn"><span>👋 مرحبًا ${esc(s.name)}</span><strong>متابعة رحلتي ▶</strong></button>`;
- const go=e=>{if(e){e.preventDefault();e.stopPropagation()}const b=$('resumeBtn');if(b){b.disabled=true;b.classList.add('loading');b.querySelector('strong').textContent='جاري فتح رحلتك…'}Promise.resolve(afterLogin()).finally(()=>{const x=$('resumeBtn');if(x){x.disabled=false;x.classList.remove('loading')}})};
- const btn=$('resumeBtn');
- btn.addEventListener('click',go);
- btn.addEventListener('pointerup',e=>{if(e.pointerType==='touch')go(e)});
-}
+function refreshResume(){const box=$('resumeBox');const s=current();if(s){box.classList.remove('hidden');box.innerHTML=`مرحبًا <b>${esc(s.name)}</b> 👋 <button class="big-btn ghost" id="resumeBtn">متابعة رحلتي</button>`;$('resumeBtn').onclick=afterLogin}else box.classList.add('hidden')}
 function voiceBanner(){const b=$('voiceBanner');if(!b)return;b.classList.toggle('hidden',hasArabicVoice()||Object.keys(db.audioLibrary||{}).length>20)}
 function bind(){$('loginBtn').onclick=startLogin;$('createBtn').onclick=createAccount;$('labStartBtn').onclick=()=>openLab('startScreen');$('adminOpenBtn').onclick=()=>isAdmin()?showAdmin():adminLogin();
  $('backWorldBtn').onclick=()=>{prepareWorld();show('worldScreen')};$('labBackBtn').onclick=()=>{if(labReturn==='worldScreen'&&current()){prepareWorld();show('worldScreen')}else if(labReturn==='profileScreen'&&current())showProfile();else if(labReturn==='writeScreen'&&current())openWorkshop();else if(labReturn==='checkScreen'&&current())openLetterCheck();else show('startScreen')};
  $('profileLogout').onclick=logout;$('writeBackBtn').onclick=()=>{prepareWorld();show('worldScreen')};$('checkBackBtn').onclick=()=>{prepareWorld();show('worldScreen')};$('adminLogoutBtn').onclick=logout;
  document.querySelectorAll('[data-nav]').forEach(b=>b.onclick=()=>{const n=b.dataset.nav;if(n==='start'){show('startScreen');refreshResume()}else if(n==='world'){prepareWorld();show('worldScreen')}});
- $('overlay').onclick=e=>{if(e.target.id==='overlay')softClose()};document.addEventListener('keydown',e=>{if(e.key==='Escape')softClose()});
+ $('overlay').onclick=e=>{if(e.target.id==='overlay')closeOverlay()};document.addEventListener('keydown',e=>{if(e.key==='Escape')closeOverlay()});
  $('stageSoundBtn').onclick=()=>{settings.sound=!settings.sound;persist();$('stageSoundBtn').textContent=settings.sound?'🔊':'🔇';if(!settings.sound)stopAudio()};
  bindToggles()}
 bind();refreshResume();applyLearnerPrefs();cloudInit();
 setTimeout(voiceBanner,1500);
 if(session&&session.role==='admin')showAdmin();
 /* لأغراض الاختبار الآلي فقط */
-window.__maamoon={get db(){return db},get settings(){return settings},speak,stopAudio,recordMic,refreshHud,isSpeaking:()=>!!(aiTtsSource||aiTtsAbort||(currentAudio&&!currentAudio.paused&&!currentAudio.ended)||('speechSynthesis'in window&&speechSynthesis.speaking)),get cloud(){return cloud},runSync,CLOUD,persist,recordMission,missionAccess,nextMi,MISSIONS,minDays,openImport,askPinChoice,openWorkshop,openLetterCheck,knownCount,letterStatus,needsLetterCheck,tracePad,current,STAGES,launchStage,finishStage,startDiagnostic,prepareWorld,showProfile,openLab,showAdmin,translit,tierFor};
+window.__maamoon={get db(){return db},get cloud(){return cloud},runSync,CLOUD,persist,recordMission,missionAccess,nextMi,MISSIONS,minDays,openImport,askPinChoice,openWorkshop,openLetterCheck,knownCount,letterStatus,needsLetterCheck,tracePad,current,STAGES,launchStage,finishStage,startDiagnostic,prepareWorld,showProfile,openLab,showAdmin,translit,tierFor};
 })();
