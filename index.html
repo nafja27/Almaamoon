@@ -4,9 +4,9 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>مغامرة المأمون — العربية لغير الناطقين بها</title>
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta name="theme-color" content="#123d67">
-<link rel="preload" href="assets/mascot.webp?v=365" as="image">
-<link rel="stylesheet" href="assets/game.css?v=365">
+<link rel="stylesheet" href="assets/game.css?v=35">
 
 <style>
 :root{--ui-navy:#123d67;--ui-blue:#19a7d8;--ui-gold:#d9a11d;--ui-bg:#f5fbff;--ui-card:#ffffff;--ui-shadow:0 20px 50px rgba(18,61,103,.12)}
@@ -44,107 +44,43 @@ body{background:linear-gradient(180deg,#eef9ff 0%,#f9fdff 100%)}
 
 .evidence-strip{display:flex;flex-wrap:wrap;gap:8px;margin:-10px 0 20px}.evidence-strip span{font-size:14px;font-weight:900;color:#47637b;background:rgba(255,255,255,.86);border:1px solid rgba(18,61,103,.08);padding:8px 11px;border-radius:999px}
 @media(max-width:700px){.evidence-strip{justify-content:center}.evidence-strip span{font-size:12px}}
-
-/* ===== V36.6: OpenAI pronunciation coach ===== */
-.ai-pronunciation{margin:22px 0 6px;padding:18px;border:1px solid rgba(25,167,216,.22);border-radius:22px;background:linear-gradient(180deg,#f3fbff,#fff);box-shadow:0 12px 30px rgba(18,61,103,.08)}
-.ai-pronunciation-head{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:10px}
-.ai-pronunciation-head h4{margin:0!important;color:#123d67;font-size:20px}
-.ai-badge{display:inline-flex;align-items:center;gap:6px;padding:7px 11px;border-radius:999px;background:#e5f8ee;color:#157a45;font-weight:900;font-size:12px}
-.ai-targets{display:flex;flex-wrap:wrap;gap:8px;margin:12px 0}
-.ai-target{border:1px solid rgba(18,61,103,.13);background:#fff;color:#123d67;border-radius:14px;padding:9px 13px;font-size:19px;font-weight:900;cursor:pointer}
-.ai-target.sel{border-color:#19a7d8;background:#e9f8fe;box-shadow:0 0 0 3px rgba(25,167,216,.09)}
-.ai-pronounce-row{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
-.ai-mic-btn{border:0;border-radius:18px;padding:14px 20px;font-size:19px;font-weight:900;background:linear-gradient(180deg,#20b95e,#159849);color:#fff;box-shadow:0 10px 24px rgba(21,152,73,.2);cursor:pointer}
-.ai-mic-btn.recording{background:linear-gradient(180deg,#ef5350,#d93025);animation:aiPulse 1s infinite}
-.ai-mic-btn:disabled{opacity:.58;cursor:wait}
-.ai-target-now{font-size:17px;color:#47637b;font-weight:800}
-.ai-target-now b{font-size:23px;color:#123d67}
-.ai-pronunciation-status{margin-top:12px;min-height:50px;padding:12px 14px;border-radius:14px;background:#fff;border:1px dashed rgba(18,61,103,.15);color:#47637b;font-weight:800;line-height:1.7}
-.ai-pronunciation-status.ok{background:#ecfbf2;border-color:#8ed6aa;color:#17663a}
-.ai-pronunciation-status.retry{background:#fff8e8;border-color:#e7c46b;color:#7a5900}
-.ai-pronunciation-status.err{background:#fff0f0;border-color:#e6a3a3;color:#8d2b2b}
-.ai-privacy{display:block;margin-top:8px;color:#6a7e90;font-size:11px;line-height:1.5}
-@keyframes aiPulse{50%{transform:scale(1.025);box-shadow:0 0 0 8px rgba(239,83,80,.12)}}
-@media(max-width:700px){.ai-pronunciation{padding:14px}.ai-mic-btn{width:100%}.ai-target-now{width:100%;text-align:center}}
-
 </style>
-<link rel="stylesheet" href="assets/v30.css?v=365">
-<link rel="stylesheet" href="assets/v36.css?v=365">
-<link rel="stylesheet" href="assets/v36_5.css?v=365">
+<link rel="stylesheet" href="assets/v30.css?v=35">
+<link rel="stylesheet" href="assets/plus.css?v=35">
 
-<link rel="stylesheet" href="assets/mamoun-buddy.css?v=3615">
-<link rel="stylesheet" href="assets/v36_10.css?v=3610">
-<link rel="stylesheet" href="assets/v36_12.css?v=3612">
-<link rel="stylesheet" href="assets/v36_13.css?v=3613">
-<link rel="stylesheet" href="assets/v36_14.css?v=3702">
-<link rel="stylesheet" href="assets/v37_home.css?v=3703">
 </head>
 <body>
 <div id="app" class="app">
-  <section id="startScreen" class="screen active start-screen v36-start">
-    <div class="v36-sky" aria-hidden="true"><span class="v36-star s1">✦</span><span class="v36-star s2">✦</span><span class="v36-cloud c1">☁</span><span class="v36-cloud c2">☁</span></div>
-
-    <header class="v36-header">
-      <div class="v36-header-tools">
-        <button id="adminOpenBtn" class="v36-icon-btn" aria-label="لوحة الإدارة">📊</button>
-        <span class="v36-mini-pill">🇧🇭 مغامرة لغوية عبر البحرين</span>
-      </div>
-      <div class="v36-school-brand">
-        <div class="v36-school-copy"><b>مدرسة المأمون الابتدائية للبنين</b><span>مغامرة المأمون — من الحرف إلى الطلاقة</span></div>
-        <img src="assets/logo.webp?v=365" alt="شعار مدرسة المأمون">
-      </div>
+  <section id="startScreen" class="screen active start-screen">
+    <div class="start-sky"><span class="cloud c1">☁️</span><span class="cloud c2">☁️</span></div>
+    <header class="school-strip">
+      <div class="school-brand"><img src="assets/logo.webp?v=35" alt="شعار مدرسة المأمون"><div><b>مدرسة المأمون الابتدائية للبنين</b><span>مغامرة المأمون — من الحرف إلى الطلاقة</span></div></div>
+      <button id="adminOpenBtn" class="icon-btn" aria-label="لوحة الإدارة">📊</button>
     </header>
-
-    <main class="v36-home">
-      <article class="v36-intro-card">
-        <div class="v36-intro-top">
-          <div class="v36-mascot-box" aria-hidden="true">
-            <span class="v36-compass">✦</span>
-            <img src="assets/mascot.webp?v=365" alt="">
-          </div>
-          <div class="v36-copy">
-            <div class="v36-eyebrow">اكتشف • تعلّم • اجمع المفاتيح</div>
-            <h1>جاهز لرحلة<br><span>كنز اللغة؟</span></h1>
-            <div class="v36-ribbon">من الحرف إلى كنز الطلاقة</div>
-            <p>انطلق مع شخصية المأمون في رحلة بين معالم البحرين. تعلّم الحروف والأصوات، اقرأ الكلمات، ابنِ الجمل، واجمع مفاتيح اللغة حتى تصل إلى الكنز.</p>
-            <p class="v36-english" dir="ltr">Explore Bahrain, master Arabic, and unlock the treasure — one mission at a time.</p>
-          </div>
-        </div>
-
-        <button id="loginBtn" class="big-btn primary v36-start-btn">ابدأ المغامرة ▶</button>
-
-        <div class="v36-section-title"><span></span><b>مراحل رحلتك في البحرين</b><span></span></div>
-        <div class="v36-steps">
-          <div class="v36-step"><i>1</i><div class="v36-step-icon">🏰</div><b>قلعة البحرين</b><small>الحروف والمدود</small></div>
-          <div class="v36-step"><i>2</i><div class="v36-step-icon">🏛️</div><b>المتحف الوطني</b><small>الكلمات</small></div>
-          <div class="v36-step"><i>4</i><div class="v36-step-icon">🏎️</div><b>حلبة البحرين الدولية</b><small>الجمل</small></div>
-          <div class="v36-step"><i>5</i><div class="v36-step-icon">🌳</div><b>شجرة الحياة</b><small>المفردات</small></div>
-        </div>
-
-        <div class="v36-evidence">
-          <span>🎯 يبدأ بتشخيص</span><span>🛟 دعم عند الحاجة</span><span>✅ 80% للإتقان</span><span>📈 قياس التقدم</span>
-        </div>
-
-        <div class="v36-actions">
-          <div class="v36-secondary-actions">
-            <button id="createBtn" class="big-btn gold">＋ حساب جديد</button>
-            <button id="labStartBtn" class="big-btn ghost"><span class="ab-icon" aria-hidden="true">أ ب ت</span> مختبر الحروف</button>
-            <button id="heroAiBtn" class="big-btn">تحدّث مع المأمون AI</button>
-          </div>
+    <div class="start-content">
+      <div class="start-copy">
+        <div class="game-label">🇧🇭 برنامج لغوي تفاعلي متدرج • تشخيص ← تدريب ← إتقان</div>
+        <h1>مغامرة المأمون</h1>
+        <h2>من الحرف إلى الكلمة إلى الجملة</h2>
+        <p>رحلة مصممة لرفع مستوى الطلبة غير الناطقين بالعربية في <b>النطق، والقراءة، والمفردات، وبناء الجملة</b>، مع أسئلة تتكيف مع مستوى كل طالب.</p>
+        <p class="start-en" dir="ltr">An Arabic adventure for non-Arabic speakers — pictures, audio and English help at every step.</p>
+        <div class="path-preview"><span><span class="ab-icon" aria-hidden="true">أب</span> الحروف</span><i>←</i><span>🧩 الكلمات</span><i>←</i><span>💬 الجمل</span><i>←</i><span>🏆 الطلاقة</span></div><div class="evidence-strip"><span>🎯 اختبار تشخيصي</span><span>🛟 دعم علاجي تلقائي</span><span>✅ إتقان 80% للانتقال</span><span>📈 قياس قبل/بعد</span></div>
+        <div class="start-buttons">
+          <button id="loginBtn" class="big-btn primary">▶ دخول الطالب</button>
+          <button id="createBtn" class="big-btn gold">＋ حساب جديد</button>
+          <button id="labStartBtn" class="big-btn ghost"><span class="ab-icon" aria-hidden="true">أب</span> مختبر الحروف <small dir="ltr">Letter Lab</small></button>
         </div>
         <div id="resumeBox" class="resume-box hidden"></div>
-        <div id="voiceBanner" class="voice-banner hidden">🔊 تستخدم أنشطة الاستماع صوتًا عربيًا مولّدًا بالذكاء الاصطناعي لتحسين وضوح النطق. عند تعذر الاتصال، يستخدم الموقع صوت الجهاز كخيار احتياطي.</div>
-      </article>
-
-      <article class="v36-map-card">
-        <img src="assets/bahrain-home-map.webp?v=3701" alt="خريطة مغامرة المأمون في البحرين">
-        <div class="map-badge-cover start-map-badge-cover" aria-hidden="true"></div>
-        <div class="v36-map-caption"><b>كل محطة تقرّبك من كنز الطلاقة</b><span>اجمع النجوم والمفاتيح وأكمل رحلتك</span></div>
-      </article>
-    </main>
-
-    <footer class="v36-credit"><span>إعداد القائم بأعمال مدير مساعد: <b>أ. نافجة الحامد</b></span><i>✦</i><span>مديرة المدرسة: <b>أ. عايدة الدوسري</b></span><em dir="ltr">V37.3</em></footer>
+        <div id="voiceBanner" class="voice-banner hidden">🔈 لا يوجد صوت عربي في هذا المتصفح. للحصول على أفضل نطق استخدم <b>Google Chrome</b> أو <b>Microsoft Edge</b>، أو سجّل صوت المعلمة من استوديو الصوت.</div>
+      </div>
+      <div class="hero-character">
+        <div class="speech-bubble">سنبدأ بالحروف، ثم ننتقل إلى الكلمات، ثم نبني الجمل خطوةً خطوةً حتى نصل إلى الطلاقة ✨</div>
+        <img src="assets/mascot.webp?v=35" alt="شخصية المأمون">
+      </div>
+    </div>
+    <footer class="credit"><div class="credit-line">إعداد القائم بأعمال مدير مساعد: <b>أ. نافجة الحامد</b></div><div class="credit-line">مديرة المدرسة: <b>أ. عايدة الدوسري</b></div><span class="version-tag" dir="ltr">V35</span></footer>
   </section>
+
   <section id="diagnosticScreen" class="screen diagnostic-screen">
     <div class="top-hud simple">
       <button class="round-btn" data-nav="start">⌂</button>
@@ -153,7 +89,7 @@ body{background:linear-gradient(180deg,#eef9ff 0%,#f9fdff 100%)}
     </div>
     <div class="diagnostic-stage">
       <aside class="diag-guide">
-        <img src="assets/mascot.webp?v=365" alt="المأمون">
+        <img src="assets/mascot.webp?v=35" alt="المأمون">
         <div class="guide-talk" id="diagGuideText">استمع جيدًا. لا بأس إن لم تعرف الإجابة، فالاختبار يحدد نقطة التدريب المناسبة.</div>
         <div class="domain-meter">
           <div><span>الحروف والأصوات</span><i><b id="meterLetters"></b></i></div>
@@ -171,16 +107,15 @@ body{background:linear-gradient(180deg,#eef9ff 0%,#f9fdff 100%)}
 
   <section id="worldScreen" class="screen world-screen">
     <div class="top-hud">
-      <button id="profileChip" class="profile-chip"><img src="assets/mascot.webp?v=365" alt=""><span><b id="hudName">الطالب</b><small>الصف <span id="hudGrade">1</span></small></span></button>
+      <button id="profileChip" class="profile-chip"><img src="assets/mascot.webp?v=35" alt=""><span><b id="hudName">الطالب</b><small>الصف <span id="hudGrade">1</span></small></span></button>
       <div class="hud-stats"><span class="hud-pill">⭐ <b id="hudPoints">0</b></span><span class="hud-pill">🔑 <b id="hudKeys">0</b>/8</span><span class="hud-pill">🎯 <b id="hudLevel">Pre-A1</b></span></div>
       <div class="hud-actions"><button class="toggle-btn" data-toggle="help" aria-label="English help">EN</button><button class="toggle-btn" data-toggle="tl" aria-label="Sound spelling">Aa</button><button id="worldSoundBtn" class="round-btn" aria-label="الصوت">🔊</button><button class="round-btn" data-nav="start">⌂</button></div>
     </div>
     <div class="world">
       <div class="map-box" id="mapBox">
-      <img class="world-art" src="assets/bahrain-home-map.webp?v=3701" alt="خريطة مغامرة البحرين" loading="lazy" decoding="async">
-       <div class="map-badge-cover world-map-badge-cover" aria-hidden="true"></div>
+      <img class="world-art" src="assets/bahrain-world.webp?v=35" alt="خريطة مغامرة البحرين">
       <svg class="learning-route" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true"><polyline id="learningRouteLine" points=""></polyline></svg>
-      <img id="explorer" class="explorer" src="assets/mamoun-buddy.png?v=3613" alt="المأمون يتحرك بين نقاط المهام" loading="eager" decoding="async">
+      <img id="explorer" class="explorer" src="assets/mascot.webp?v=35" alt="المأمون يتحرك بين المحطات">
       <div id="sparkles" class="sparkles"></div>
       <!-- مواقع المحطات مطابقة للمعالم المرسومة في الخريطة (نسبة مئوية من الصورة) -->
       <button class="station-node" data-stage="0" style="--x:48.05%;--y:33.73%"><span>1</span><b>قلعة البحرين</b><small>الحروف والحركات</small></button>
@@ -197,29 +132,29 @@ body{background:linear-gradient(180deg,#eef9ff 0%,#f9fdff 100%)}
         <div class="mission-zone" id="missionZone">عالم الحروف</div><h3 id="missionPlace">قلعة البحرين</h3><strong id="missionSkill">الحروف والحركات</strong><p id="missionDesc">استمع إلى الحرف، ميّز صوته، ثم اختره.</p><div id="missionCanDo" class="can-do">🎯 أستطيع أن أميّز الحروف والحركات الأساسية.</div><div class="mission-bottom"><span id="missionReward">🔑 مفتاح الحروف</span><button id="enterStageBtn" class="big-btn primary">ابدأ المهمة ▶</button></div>
       </aside>
     </div>
-    <nav class="game-nav"><button class="active" data-tab="world">🗺️<span>الخريطة</span></button><button data-tab="profile">👤<span>تقدمي</span></button><button data-tab="practice">🧠<span>تدريب ذكي</span></button><button data-tab="lab"><span class="ab-icon" aria-hidden="true">أ ب ت</span><span>مختبر الحروف</span></button><button data-tab="write">✍️<span>الكتابة</span></button><button data-tab="admin">📊<span>التقارير</span></button></nav>
+    <nav class="game-nav"><button class="active" data-tab="world">🗺️<span>الخريطة</span></button><button data-tab="profile">👤<span>تقدمي</span></button><button data-tab="practice">🧠<span>تدريب ذكي</span></button><button data-tab="lab"><span class="ab-icon" aria-hidden="true">أب</span><span>مختبر الحروف</span></button><button data-tab="write">✍️<span>الكتابة</span></button><button data-tab="admin">📊<span>التقارير</span></button></nav>
   </section>
 
   <section id="stageScreen" class="screen stage-screen">
     <div class="stage-bg" id="stageBg"></div>
     <div class="stage-particles" id="stageParticles"></div>
-    <div class="top-hud stage-hud"><button id="backWorldBtn" class="round-btn" aria-label="العودة للخريطة">→</button><div class="hud-title"><span id="stageIcon"><span class="ab-icon" aria-hidden="true">أ ب ت</span></span> <span id="stageTitle">الحروف والحركات</span></div><div class="hud-stats"><span class="hud-pill combo" id="comboPill" hidden>🔥 <b>0</b></span><span class="hud-pill">إتقان <b id="stageMastery">0%</b></span><span class="hud-pill">⭐ <b id="stagePoints">0</b></span><button class="toggle-btn" data-toggle="help" aria-label="English help">EN</button><button class="toggle-btn" data-toggle="tl" aria-label="Sound spelling">Aa</button><button id="stageSoundBtn" class="round-btn" aria-label="الصوت">🔊</button></div></div>
+    <div class="top-hud stage-hud"><button id="backWorldBtn" class="round-btn" aria-label="العودة للخريطة">→</button><div class="hud-title"><span id="stageIcon"><span class="ab-icon" aria-hidden="true">أب</span></span> <span id="stageTitle">الحروف والحركات</span></div><div class="hud-stats"><span class="hud-pill combo" id="comboPill" hidden>🔥 <b>0</b></span><span class="hud-pill">إتقان <b id="stageMastery">0%</b></span><span class="hud-pill">⭐ <b id="stagePoints">0</b></span><button class="toggle-btn" data-toggle="help" aria-label="English help">EN</button><button class="toggle-btn" data-toggle="tl" aria-label="Sound spelling">Aa</button><button id="stageSoundBtn" class="round-btn" aria-label="الصوت">🔊</button></div></div>
     <div class="stage-layout">
-      <aside class="coach"><img src="assets/mascot.webp?v=365" alt="المأمون"><div class="coach-talk"><b id="coachTitle">استمع أولًا</b><span id="coachText">سنسمع الصوت، ثم نميّزه، ثم ننطقه.</span></div><div class="skill-progress"><span>إتقان المهارة</span><div class="bar"><b id="skillBar"></b></div><small id="skillStatus">يحتاج إلى تدريب</small></div></aside>
+      <aside class="coach"><img src="assets/mascot.webp?v=35" alt="المأمون"><div class="coach-talk"><b id="coachTitle">استمع أولًا</b><span id="coachText">سنسمع الصوت، ثم نميّزه، ثم ننطقه.</span></div><div class="skill-progress"><span>إتقان المهارة</span><div class="bar"><b id="skillBar"></b></div><small id="skillStatus">يحتاج إلى تدريب</small></div></aside>
       <main id="activityBoard" class="activity-board"></main>
     </div>
   </section>
 
   <section id="profileScreen" class="screen profile-screen"><div class="top-hud simple"><button class="round-btn" data-nav="world" aria-label="رجوع">→</button><div class="hud-title">👤 ملف التقدم</div><button id="profileLogout" class="round-btn">⇥</button></div><div id="profileContent" class="profile-content"></div></section>
   <section id="adminScreen" class="screen admin-screen"><div class="top-hud simple"><button class="round-btn" data-nav="start" aria-label="رجوع">→</button><div class="hud-title">📊 لوحة الإدارة والمتابعة</div><button id="adminLogoutBtn" class="round-btn">⇥</button></div><div id="adminContent" class="admin-content"></div></section>
-  <section id="labScreen" class="screen lab-screen"><div class="top-hud simple"><button id="labBackBtn" class="round-btn" aria-label="رجوع">→</button><div class="hud-title"><span class="ab-icon" aria-hidden="true">أ ب ت</span> مختبر الحروف <small class="gloss-inline" dir="ltr">Letter Lab</small></div><div class="hud-stats"><button class="toggle-btn" data-toggle="help" aria-label="English help">EN</button></div></div><div id="labContent" class="lab-content"></div></section>
+  <section id="labScreen" class="screen lab-screen"><div class="top-hud simple"><button id="labBackBtn" class="round-btn" aria-label="رجوع">→</button><div class="hud-title"><span class="ab-icon" aria-hidden="true">أب</span> مختبر الحروف <small class="gloss-inline" dir="ltr">Letter Lab</small></div><div class="hud-stats"><button class="toggle-btn" data-toggle="help" aria-label="English help">EN</button></div></div><div id="labContent" class="lab-content"></div></section>
   <section id="writeScreen" class="screen write-screen"><div class="top-hud simple"><button id="writeBackBtn" class="round-btn" aria-label="العودة للخريطة">→</button><div class="hud-title">✍️ ورشة الكتابة <small class="gloss-inline" dir="ltr">Writing</small></div><div class="hud-stats"><span class="hud-pill combo" hidden>🔥 <b>0</b></span><span class="hud-pill">⭐ <b id="writePoints">0</b></span><button class="toggle-btn" data-toggle="help" aria-label="English help">EN</button><button class="toggle-btn" data-toggle="tl" aria-label="Sound spelling">Aa</button></div></div><main id="writeBoard" class="activity-board write-board"></main></section>
-  <section id="checkScreen" class="screen write-screen"><div class="top-hud simple"><button id="checkBackBtn" class="round-btn" aria-label="العودة للخريطة">→</button><div class="hud-title"><span class="ab-icon" aria-hidden="true">أ ب ت</span> فحص الحروف <small class="gloss-inline" dir="ltr">Letter check</small></div><div class="hud-stats"><span class="hud-pill">⭐ <b id="checkPoints">0</b></span><button class="toggle-btn" data-toggle="help" aria-label="English help">EN</button><button class="toggle-btn" data-toggle="tl" aria-label="Sound spelling">Aa</button></div></div><main id="checkBoard" class="activity-board write-board"></main></section>
+  <section id="checkScreen" class="screen write-screen"><div class="top-hud simple"><button id="checkBackBtn" class="round-btn" aria-label="العودة للخريطة">→</button><div class="hud-title"><span class="ab-icon" aria-hidden="true">أب</span> فحص الحروف <small class="gloss-inline" dir="ltr">Letter check</small></div><div class="hud-stats"><span class="hud-pill">⭐ <b id="checkPoints">0</b></span><button class="toggle-btn" data-toggle="help" aria-label="English help">EN</button><button class="toggle-btn" data-toggle="tl" aria-label="Sound spelling">Aa</button></div></div><main id="checkBoard" class="activity-board write-board"></main></section>
   <section id="overlay" class="overlay hidden" role="dialog" aria-modal="true"><div id="overlayCard" class="overlay-card"></div></section>
 </div>
-<script src="assets/config.js?v=365"></script>
-<script src="assets/content.js?v=365"></script>
-<script src="assets/game.js?v=3620"></script>
-<script src="assets/mamoun-buddy.js?v=3615"></script>
+<script src="assets/config.js?v=35"></script>
+<script src="assets/content.js?v=35"></script>
+<script src="assets/game.js?v=35"></script>
+<script src="assets/plus.js?v=35"></script>
 </body>
 </html>
