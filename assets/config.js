@@ -4,5 +4,7 @@
    إذا تُركت فارغة تعمل اللعبة على الجهاز فقط (بدون قاعدة بيانات). */
 window.MAAMOON_CONFIG = {
   supabaseUrl: '',
-  supabaseAnonKey: ''
+  supabaseAnonKey: '',
+  /* تحدي النطق 🎤 (إضافي، لا يؤثر على الإتقان). اجعليها false لإخفائه */
+  pronunciationChallenge: true
 };
