@@ -22,9 +22,9 @@ const DB_KEY='almaamoon_v26_db',SESSION_KEY='almaamoon_v26_session',SETTINGS_KEY
 
 const STAGES=[
  {zone:'عالم الحروف',zoneEn:'Letter World',place:'قلعة البحرين',skill:'الحروف والحركات والمدود',skillEn:'Letters, short & long vowels',key:'letters',icon:'<span class="ab-icon" aria-hidden="true">أ ب ت</span>',reward:'🔑',rewardName:'مفتاح الحروف',canDo:'أستطيع أن أميّز الحروف والحركات والمدود الأساسية.',canDoEn:'I can recognise letters, short vowels and long vowels.',desc:'استمع إلى الحرف أو المقطع ثم اختره.',descEn:'Listen to the letter or syllable, then choose it.'},
- {zone:'عالم الحروف',zoneEn:'Letter World',place:'باب البحرين',skill:'الأصوات المتشابهة',skillEn:'Similar sounds',key:'sounds',icon:'🎙️',reward:'🎧',rewardName:'وسام الأذن الذهبية',canDo:'أستطيع أن أميّز بين الأصوات العربية المتشابهة.',canDoEn:'I can hear the difference between similar Arabic sounds.',desc:'تسمع صوتًا واحدًا من زوج متشابه. أيّهما سمعت؟',descEn:'You hear one sound from a similar pair. Which one was it?'},
- {zone:'عالم الكلمات',zoneEn:'Word World',place:'متحف البحرين الوطني',skill:'قراءة الكلمات',skillEn:'Reading words',key:'wordReading',icon:'📖',reward:'📘',rewardName:'مفتاح الكلمات',canDo:'أستطيع أن أقرأ كلمات مألوفة بنفسي.',canDoEn:'I can read familiar words by myself.',desc:'اقرأ الكلمة بنفسك. المس الحروف لتسمعها.',descEn:'Read the word yourself. Tap the letters to hear them.'},
- {zone:'عالم الكلمات',zoneEn:'Word World',place:'شجرة الحياة',skill:'معنى الكلمات',skillEn:'Word meaning',key:'wordMeaning',icon:'🌳',reward:'🌱',rewardName:'بذرة المفردات',canDo:'أستطيع أن أفهم معنى كلمات مألوفة.',canDoEn:'I understand the meaning of familiar words.',desc:'طابق الكلمة بصورتها.',descEn:'Match each word to its picture.'},
+ {zone:'عالم الحروف',zoneEn:'Letter World',place:'متحف البحرين الوطني',skill:'الأصوات المتشابهة',skillEn:'Similar sounds',key:'sounds',icon:'🎙️',reward:'🎧',rewardName:'وسام الأذن الذهبية',canDo:'أستطيع أن أميّز بين الأصوات العربية المتشابهة.',canDoEn:'I can hear the difference between similar Arabic sounds.',desc:'تسمع صوتًا واحدًا من زوج متشابه. أيّهما سمعت؟',descEn:'You hear one sound from a similar pair. Which one was it?'},
+ {zone:'عالم الكلمات',zoneEn:'Word World',place:'شجرة الحياة',skill:'قراءة الكلمات',skillEn:'Reading words',key:'wordReading',icon:'📖',reward:'📘',rewardName:'مفتاح الكلمات',canDo:'أستطيع أن أقرأ كلمات مألوفة بنفسي.',canDoEn:'I can read familiar words by myself.',desc:'اقرأ الكلمة بنفسك. المس الحروف لتسمعها.',descEn:'Read the word yourself. Tap the letters to hear them.'},
+ {zone:'عالم الكلمات',zoneEn:'Word World',place:'باب البحرين',skill:'معنى الكلمات',skillEn:'Word meaning',key:'wordMeaning',icon:'🌳',reward:'🌱',rewardName:'بذرة المفردات',canDo:'أستطيع أن أفهم معنى كلمات مألوفة.',canDoEn:'I understand the meaning of familiar words.',desc:'طابق الكلمة بصورتها.',descEn:'Match each word to its picture.'},
  {zone:'عالم الجمل',zoneEn:'Sentence World',place:'جسر الملك فهد',skill:'بناء الجملة',skillEn:'Building sentences',key:'sentenceBuild',icon:'🧩',reward:'🌉',rewardName:'مفتاح الجملة',canDo:'أستطيع أن أبني جملة عربية قصيرة صحيحة.',canDoEn:'I can build a short, correct Arabic sentence.',desc:'رتّب الكلمات لتكوين الجملة.',descEn:'Put the words in the right order.'},
  {zone:'عالم الجمل',zoneEn:'Sentence World',place:'مركز البحرين التجاري العالمي',skill:'الاستماع إلى الجمل',skillEn:'Listening to sentences',key:'sentenceListen',icon:'🎧',reward:'🏙️',rewardName:'وسام المستمع',canDo:'أستطيع أن أفهم جملًا قصيرة أسمعها.',canDoEn:'I can understand short sentences I hear.',desc:'استمع إلى الجملة واختر الصورة أو المعنى.',descEn:'Listen to the sentence and choose the picture or meaning.'},
  {zone:'عالم الجمل',zoneEn:'Sentence World',place:'حلبة البحرين الدولية',skill:'سباق الجمل',skillEn:'Sentence race',key:'sentenceOrder',icon:'🏎️',reward:'🏆',rewardName:'كأس السباق',canDo:'أستطيع أن أرتب الجملة بسرعة ودقة.',canDoEn:'I can order a sentence quickly and correctly.',desc:'ابنِ الجملة قبل أن تصل السيارة المنافسة.',descEn:'Build the sentence before the other car finishes.'},
@@ -53,7 +53,7 @@ const RETRY=[['لَا بَأْسَ، هَذِهِ هِيَ الإِجَابَة�
 /* ================= البيانات ================= */
 let settings=load(SETTINGS_KEY,{sound:true});
 let db=load(DB_KEY,null)||{counter:1,admins:[{user:'admin',pin:'1234'}],students:[],audioLibrary:{}};
-db.pacing=db.pacing||{perDay:2};
+db.pacing=db.pacing||{perDay:3};/*V38.10: الوتيرة الافتراضية 3 مهام يوميًا؛ نرفع القيمة القديمة 2 مرة واحدة فقط، ويبقى للإدارة تغييرها*/if(!db.pace3){if(+db.pacing.perDay===2)db.pacing={perDay:3};db.pace3=true}
 db.admins=db.admins&&db.admins.length?db.admins:[{user:'admin',pin:'1234'}];
 db.audioLibrary=db.audioLibrary||{};db.students=db.students||[];
 db.students.forEach(ensureLearnerShape);
@@ -943,14 +943,16 @@ function clampMap(v,min=4,max=96){return Math.max(min,Math.min(max,v))}
   كل محطة لها جزء من الطريق يخرج منها؛ الإحداثيات نسبة مئوية من صورة bahrain-map-hd.webp */
 const MAP_ROUTES={
  0:[[46.6,20],[43.4,20.8],[40.3,22.4],[37.3,25],[35,26.4],[33.4,27.4]],
- 1:[[43.8,44.3],[41.3,46.1],[38.8,47.8],[36.3,49.6],[33.8,51.4],[31.6,52.7],[29.4,54.3]],
- 2:[[26.9,34.6],[28.8,35.5],[30.9,36.7],[33.1,38],[35.3,38.8],[36.9,39.2]],
- 3:[[21.9,64.1],[24.4,65.9],[26.9,66.7],[29.4,66.8],[31.9,66.5],[34.4,65.9],[36.9,65.2]],
- 4:[[67.2,25.1],[65.3,27.2],[63.4,29.5],[61.9,32.2],[60.3,34.3],[58.8,35.7]],
- 5:[[80.6,55.7],[81.1,58.5],[80.8,61.4],[80,63.8]],
+ 1:[[24.5,37.5],[27,40.5],[28.5,44.5],[28,49],[25.5,53.5],[23.5,56.5]],
+ 2:[[29.4,54.3],[31.6,52.7],[33.8,51.4],[36.3,49.6],[38.8,47.8],[41.3,46.1],[43.8,44.3]],
+ 3:[[58.8,35.7],[60.3,34.3],[61.9,32.2],[63.4,29.5],[65.3,27.2],[67.2,25.1]],
+ 4:[[73,26],[78.5,28.5],[86,32],[89.5,37.5],[90.5,43.5],[88,48.5]],
+ 5:[[75.5,56.5],[72.5,57],[70,57.8],[66,59.5],[62.5,61.5],[59,63.5]],
  6:[[58.4,68.4],[60.6,69.8],[62.5,70.9],[64.4,71.4],[66.3,71.7]],
  7:[[69.4,75.9],[67.5,77.8],[65.3,79.6],[63.1,81.2],[60.9,82.3],[58.8,83]]
 };
+/* الوصلات المرسومة بالكود (غير موجودة في صورة الخريطة) */
+const MAP_CUSTOM_LINKS=[1,4,5];
 function routePoint(pts,f){const seg=[];let L=0;for(let j=1;j<pts.length;j++){const d=Math.hypot(pts[j][0]-pts[j-1][0],(pts[j][1]-pts[j-1][1])*.6);seg.push(d);L+=d}
  let t=f*L;for(let j=1;j<pts.length;j++){if(t<=seg[j-1]||j===pts.length-1){const u=seg[j-1]?Math.min(1,t/seg[j-1]):0;return{x:pts[j-1][0]+(pts[j][0]-pts[j-1][0])*u,y:pts[j-1][1]+(pts[j][1]-pts[j-1][1])*u}}t-=seg[j-1]}return{x:pts[0][0],y:pts[0][1]}}
 function dotPos(i,k,n){
@@ -998,6 +1000,10 @@ function drawPathDots(){
   });
  }
 
+ /*PLUS V38.5: خرز مرسوم بالكود للوصلات غير الموجودة في الصورة */
+ if(!world.querySelector('.map-beads')){const bx=document.createElement('div');bx.className='map-beads';bx.setAttribute('aria-hidden','true');
+  MAP_CUSTOM_LINKS.forEach(i=>{const r=MAP_ROUTES[i];const N=14;for(let q=0;q<=N;q++){const p=routePoint(r,q/N);const b=document.createElement('i');b.style.left=p.x+'%';b.style.top=p.y+'%';bx.appendChild(b)}});
+  world.insertBefore(bx,world.querySelector('.path-dot'))}
  const svg=document.querySelector('.learning-route');
  if(svg){
   const route=[...Array(9)].map((_,i)=>nodePos(i)).filter(Boolean);
@@ -1086,7 +1092,7 @@ async function cloudLogout(){const t=cloud.token;cloudLogoutLocal();if(t){try{aw
 
 /* ===== بدء التشغيل ===== */
 async function cloudInit(){if(!CLOUD)return;document.body.classList.add('cloud-mode');
- try{const st=await rpc('get_settings',{});if(st&&st.pacing){db.pacing=st.pacing;pacingSnap=JSON.stringify(db.pacing)}}catch{}
+ try{const st=await rpc('get_settings',{});if(st&&st.pacing){db.pacing=st.pacing;if(!db.pace3cloud&&+db.pacing.perDay===2){db.pacing={perDay:3};db.pace3cloud=true}else db.pace3cloud=true;pacingSnap=JSON.stringify(db.pacing)}}catch{}
  try{const lib=await rpc('get_audio_all',{});db.audioLibrary=lib||{};snapAudio()}catch{}
  if(cloud.token&&cloud.role==='student'){try{const srv=await rpc('student_get',{p_token:cloud.token});const loc=db.students.find(x=>x.id===srv.id);
    /* إذا كان على الجهاز تقدم لم يُرفع بعد نرفعه، وإلا نأخذ نسخة الخادم */

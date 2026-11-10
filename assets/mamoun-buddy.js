@@ -3,7 +3,7 @@
 const API='/api/mamoun-realtime';
 const STATUS_API='/api/ai-status';
 const MAX_MS=5*60*1000;
-let pc=null,dc=null,stream=null,audioEl=null,sessionTimer=null,connected=false,muted=false,lastAssistant='',lastUser='';
+let connectedAt=0,pc=null,dc=null,stream=null,audioEl=null,sessionTimer=null,connected=false,muted=false,lastAssistant='',lastUser='';
 
 function el(tag,cls,html){const x=document.createElement(tag);if(cls)x.className=cls;if(html!=null)x.innerHTML=html;return x}
 function safe(t){return String(t??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
@@ -90,7 +90,9 @@ function onEvent(e){let ev;try{ev=JSON.parse(e.data)}catch{return}
   case 'input_audio_buffer.speech_started': if(avatar.classList.contains('talking'))break;setAvatar('listening');setStatus('أنا أستمع إليك…','listening');break;
   case 'input_audio_buffer.speech_stopped': if(avatar.classList.contains('talking'))break;setAvatar('thinking');setStatus('أفكر في إجابتك…','live');break;
   case 'conversation.item.input_audio_transcription.completed':
-    lastUser=ev.transcript||'';if(lastUser){clearWelcome();addMsg('child',lastUser)}break;
+    lastUser=(ev.transcript||'').trim();if(lastUser){clearWelcome();
+     /* V38.8: الكتابة الآلية لكلمة قصيرة قد تخطئ أو تُكتب بحروف لاتينية؛ نعرض الكلام العربي فقط */
+     if(/[\u0600-\u06FF]/.test(lastUser))addMsg('child',lastUser);else addMsg('child','🎤 …')}break;
   case 'response.created': transcript.querySelectorAll('.mb-msg.mamoun').forEach(n=>n.remove());setAvatar('thinking');setStatus('أفكر…','live');lastAssistant='';break;
   case 'response.output_audio_transcript.delta':
     lastAssistant+=(ev.delta||'');setAvatar('talking');setStatus('المأمون يتحدث…','live');break;
@@ -98,12 +100,17 @@ function onEvent(e){let ev;try{ev=JSON.parse(e.data)}catch{return}
     if(ev.transcript)lastAssistant=ev.transcript; if(lastAssistant){clearWelcome();addMsg('mamoun',lastAssistant);lastAssistant=''}break;
   case 'response.output_audio.done': setAvatar('');setStatus('تحدّث الآن، أنا أستمع إليك','live');break;
   case 'response.done': if(ev.response?.status==='failed'){addMsg('system','تعذر إكمال الرد. حاول مرة أخرى.');setAvatar('');}break;
-  case 'error': addMsg('system','حدث خطأ في الاتصال. جرّب إنهاء الحديث ثم ابدأ من جديد.');setAvatar('');break;
+  case 'error':{/* V38.8: أخطاء عابرة (مثل: الطفل تكلم والمأمون ما زال يرد) لا تعني انقطاع الاتصال */
+    const code=String(ev.error?.code||ev.error?.type||'');console.warn('Realtime error',code,ev.error?.message||'');
+    if(/active_response|cancel_not_active|commit_empty|buffer_too_small|item_truncate|response_cancel/i.test(code))break;
+    if(pc&&pc.connectionState==='connected'&&!/session|auth|rate|quota|expired/i.test(code))break;
+    addMsg('system','حدث خطأ في الاتصال. جرّب إنهاء الحديث ثم ابدأ من جديد.');setAvatar('');break}
  }
 }
 
 async function connect(){
- if(connected)return disconnect();
+ /* V38.9: لمسة سريعة بعد الاتصال مباشرة (ضغطة مزدوجة) لا تنهي الحديث بالخطأ */
+ if(connected){if(Date.now()-connectedAt<2500)return;return disconnect()}
  start.disabled=true;start.classList.add('connecting');start.querySelector('span').textContent='جاري الاتصال…';setStatus('جاري تجهيز الميكروفون…');
  try{
   if(!navigator.mediaDevices?.getUserMedia)throw new Error('microphone_unsupported');
@@ -113,7 +120,7 @@ async function connect(){
   stream.getTracks().forEach(t=>pc.addTrack(t,stream));
   dc=pc.createDataChannel('oai-events');dc.addEventListener('message',onEvent);
   dc.addEventListener('open',()=>{
-    connected=true;start.disabled=false;start.classList.remove('connecting');start.classList.add('stop');start.innerHTML='⏹️ <span>إنهاء الحديث</span>';mute.disabled=false;contextBtn.disabled=false;setStatus('تحدّث الآن، أنا أستمع إليك','live');
+    connected=true;start.disabled=false;start.classList.remove('connecting');start.classList.add('stop');start.innerHTML='⏹️ <span>إنهاء الحديث</span>';connectedAt=Date.now();mute.disabled=false;contextBtn.disabled=false;setStatus('تحدّث الآن، أنا أستمع إليك','live');
     refreshContext();
     send({type:'response.create',response:{instructions:'ابدأ الجلسة الآن بقول: "أهلًا يا بطل! أنا المأمون. هيا نتعلم العربية معًا. هل أنت مستعد؟" قلها بصوت دافئ وبطيء، ولا تضف سؤالًا آخر.'}});
     clearTimeout(sessionTimer);sessionTimer=setTimeout(()=>{addMsg('system','انتهت جلسة التدريب القصيرة. يمكنك بدء جلسة جديدة متى شئت.');disconnect()},MAX_MS);
@@ -132,7 +139,7 @@ async function connect(){
  }
 }
 function cleanup(){clearTimeout(sessionTimer);sessionTimer=null;try{dc?.close()}catch{};try{pc?.close()}catch{};try{stream?.getTracks().forEach(t=>t.stop())}catch{};pc=dc=stream=null;connected=false;muted=false;setAvatar('')}
-function disconnect(showMsg=true){cleanup();start.disabled=false;start.classList.remove('connecting','stop');start.innerHTML='🎙️ <span>ابدأ الحديث</span>';mute.disabled=true;contextBtn.disabled=true;mute.textContent='🔇 كتم الميكروفون';setStatus('المأمون جاهز للتحدث معك');if(showMsg)addMsg('system','تم إنهاء الحديث.')}
+function disconnect(showMsg=true){cleanup();start.disabled=false;start.classList.remove('connecting','stop');start.innerHTML='🎙️ <span>ابدأ الحديث</span>';mute.disabled=true;contextBtn.disabled=true;mute.textContent='🔇 كتم الميكروفون';setStatus('المأمون جاهز للتحدث معك');if(showMsg)addMsg('system','أنهيتَ الحديث. اضغط «ابدأ الحديث» لتتكلم مع المأمون مرة أخرى.')}
 function toggleMute(){if(!stream)return;muted=!muted;stream.getAudioTracks().forEach(t=>t.enabled=!muted);mute.textContent=muted?'🎙️ تشغيل الميكروفون':'🔇 كتم الميكروفون';setStatus(muted?'الميكروفون مكتوم':'تحدّث الآن، أنا أستمع إليك',muted?'':'live')}
 function open(){backdrop.classList.add('open');document.body.style.overflow='hidden';const img=document.getElementById('mbBuddyImage');if(img&&img.dataset.fullSrc&&img.src.indexOf('mamoun-buddy.png')<0){const full=new Image();full.onload=()=>{img.src=img.dataset.fullSrc};full.src=img.dataset.fullSrc}}
 function close(){backdrop.classList.remove('open');document.body.style.overflow='';if(connected)disconnect(false)}

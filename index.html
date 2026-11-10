@@ -72,81 +72,54 @@ body{background:linear-gradient(180deg,#eef9ff 0%,#f9fdff 100%)}
 <link rel="stylesheet" href="assets/v36.css?v=365">
 <link rel="stylesheet" href="assets/v36_5.css?v=365">
 
-<link rel="stylesheet" href="assets/mamoun-buddy.css?v=381">
+<link rel="stylesheet" href="assets/mamoun-buddy.css?v=389">
 <link rel="stylesheet" href="assets/v36_10.css?v=3610">
 <link rel="stylesheet" href="assets/v36_12.css?v=3612">
 <link rel="stylesheet" href="assets/v36_13.css?v=3613">
 <link rel="stylesheet" href="assets/v36_14.css?v=37">
 <link rel="stylesheet" href="assets/v37_fx.css?v=37">
-<link rel="stylesheet" href="assets/plus.css?v=384">
+<link rel="stylesheet" href="assets/plus.css?v=3811">
 </head>
 <body>
 <div id="app" class="app">
-  <section id="startScreen" class="screen active start-screen v36-start">
-    <div class="v36-sky" aria-hidden="true"><span class="v36-star s1">✦</span><span class="v36-star s2">✦</span><span class="v36-cloud c1">☁</span><span class="v36-cloud c2">☁</span></div>
-
-    <header class="v36-header">
-      <div class="v36-header-tools">
-        <button id="adminOpenBtn" class="v36-icon-btn" aria-label="لوحة الإدارة">📊</button>
-        <span class="v36-mini-pill">🇧🇭 مغامرة لغوية عبر البحرين</span>
-      </div>
-      <div class="v36-school-brand">
-        <div class="v36-school-copy"><b>مدرسة المأمون الابتدائية للبنين</b><span>مغامرة المأمون — من الحرف إلى الطلاقة</span></div>
-        <img src="assets/logo.webp?v=365" alt="شعار مدرسة المأمون">
-      </div>
+  <section id="startScreen" class="screen active start-screen h38-start">
+    <header class="h38-top">
+      <div class="h38-brand"><img src="assets/logo.webp?v=365" alt="شعار مدرسة المأمون"><div><b>مدرسة المأمون الابتدائية للبنين</b><span>مغامرة المأمون — العربية لغير الناطقين بها</span></div></div>
+      <button id="adminOpenBtn" class="h38-icon" aria-label="لوحة الإدارة" title="لوحة الإدارة">📊</button>
     </header>
-
-    <main class="v36-home">
-      <article class="v36-intro-card">
-        <div class="v36-intro-top">
-          <div class="v36-mascot-box" aria-hidden="true">
-            <span class="v36-compass">✦</span>
-            <img src="assets/mascot.webp?v=365" alt="">
-          </div>
-          <div class="v36-copy">
-            <div class="v36-eyebrow">اكتشف • تعلّم • اجمع المفاتيح</div>
-            <h1>جاهز لرحلة<br><span>كنز اللغة؟</span></h1>
-            <div class="v36-ribbon">من الحرف إلى كنز الطلاقة</div>
-            <p>انطلق مع شخصية المأمون في رحلة بين معالم البحرين. تعلّم الحروف والأصوات، اقرأ الكلمات، ابنِ الجمل، واجمع مفاتيح اللغة حتى تصل إلى الكنز.</p>
-            <p class="v36-english" dir="ltr">Explore Bahrain, master Arabic, and unlock the treasure — one mission at a time.</p>
+    <main class="h38-main">
+      <section class="h38-panel">
+        <div class="h38-hero">
+          <img class="h38-mascot" src="assets/mascot.webp?v=365" alt="">
+          <div class="h38-copy">
+            <div class="h38-eyebrow">🇧🇭 اكتشف • تعلّم • اجمع المفاتيح</div>
+            <h1>جاهز لرحلة <span>كنز اللغة؟</span></h1>
+            <p>انطلق مع المأمون بين معالم البحرين، أتقن مهارة في كل محطة، واجمع 8 مفاتيح لتفتح كنز الطلاقة.</p>
+            <p class="h38-en" dir="ltr">Explore Bahrain, master Arabic, unlock the treasure.</p>
           </div>
         </div>
-
-        <div class="v36-section-title"><span></span><b>مراحل رحلتك في البحرين</b><span></span></div>
-        <div class="v36-steps">
-          <div class="v36-step"><i>1</i><div class="v36-step-icon">🏰</div><b>قلعة البحرين</b><small>الحروف والمدود</small></div>
-          <span class="v36-arrow">←</span>
-          <div class="v36-step"><i>2</i><div class="v36-step-icon">🏛️</div><b>المتحف</b><small>الكلمات</small></div>
-          <span class="v36-arrow">←</span>
-          <div class="v36-step"><i>3</i><div class="v36-step-icon">🏎️</div><b>الحلبة</b><small>الجمل</small></div>
-          <span class="v36-arrow">←</span>
-          <div class="v36-step treasure"><i>4</i><div class="v36-step-icon">🏆</div><b>الكنز</b><small>الطلاقة</small></div>
-        </div>
-
-        <div class="v36-evidence">
-          <span>🎯 يبدأ بتشخيص</span><span>🛟 دعم عند الحاجة</span><span>✅ 80% للإتقان</span><span>📈 قياس التقدم</span>
-        </div>
-
-        <div class="v36-actions">
-          <button id="loginBtn" class="big-btn primary v36-start-btn">ابدأ المغامرة ▶</button>
-          <div class="v36-secondary-actions">
+        <div class="h38-title"><span></span><b>مراحل رحلتك: 8 محطات ثم الكنز</b><span></span></div>
+        <ol class="h38-stops" aria-label="مراحل الرحلة"><li class=""><i>1</i><span class="ic" aria-hidden="true">🏰</span><b>قلعة البحرين</b><small>الحروف والحركات</small></li><li class=""><i>2</i><span class="ic" aria-hidden="true">🏛️</span><b>المتحف الوطني</b><small>الأصوات المتشابهة</small></li><li class=""><i>3</i><span class="ic" aria-hidden="true">🌳</span><b>شجرة الحياة</b><small>قراءة الكلمات</small></li><li class=""><i>4</i><span class="ic" aria-hidden="true">🚪</span><b>باب البحرين</b><small>معنى الكلمات</small></li><li class=""><i>5</i><span class="ic" aria-hidden="true">🌉</span><b>جسر الملك فهد</b><small>بناء الجمل</small></li><li class=""><i>6</i><span class="ic" aria-hidden="true">🏙️</span><b>المركز التجاري</b><small>الاستماع للجمل</small></li><li class=""><i>7</i><span class="ic" aria-hidden="true">🏎️</span><b>حلبة البحرين</b><small>سباق الجمل</small></li><li class=""><i>8</i><span class="ic" aria-hidden="true">🎭</span><b>المسرح الوطني</b><small>القراءة والفهم</small></li><li class="goal"><i>★</i><span class="ic" aria-hidden="true">👑</span><b>كنز الطلاقة</b><small>المهمة النهائية</small></li></ol>
+        <div class="h38-actions v36-actions">
+          <div id="resumeBox" class="resume-box hidden"></div>
+          <button id="loginBtn" class="big-btn primary h38-primary">ابدأ المغامرة ▶</button>
+          <div class="h38-row">
             <button id="createBtn" class="big-btn gold">＋ حساب جديد</button>
             <button id="labStartBtn" class="big-btn ghost"><span class="ab-icon" aria-hidden="true">أ ب ت</span> مختبر الحروف</button>
-             <button id="heroAiBtn" class="big-btn">تحدّث مع المأمون AI</button>
+            <button id="heroAiBtn" class="big-btn h38-ai">المأمون AI</button>
           </div>
         </div>
-        <div id="resumeBox" class="resume-box hidden"></div>
         <div id="voiceBanner" class="voice-banner hidden">🔊 تستخدم أنشطة الاستماع صوتًا عربيًا مولّدًا بالذكاء الاصطناعي لتحسين وضوح النطق. عند تعذر الاتصال، يستخدم الموقع صوت الجهاز كخيار احتياطي.</div>
-      </article>
-
-      <article class="v36-map-card">
-        <div class="v36-map-label">🗺️ خريطة المغامرة</div>
-        <img src="assets/bahrain-map-hd.webp?v=37" alt="خريطة مغامرة المأمون في البحرين">
-        <div class="v36-map-caption"><b>كل محطة تقرّبك من كنز الطلاقة</b><span>اجمع النجوم والمفاتيح وأكمل رحلتك</span></div>
-      </article>
+      </section>
+      <section class="h38-map" aria-label="خريطة المغامرة">
+        <div class="h38-mapbox">
+          <img src="assets/bahrain-map-hd.webp?v=37" alt="خريطة مغامرة المأمون في البحرين">
+          <div class="h38-pins" aria-hidden="true"><span class="h38-pin" style="left:49.6%;top:19.6%">1</span><span class="h38-pin" style="left:23.7%;top:31.1%">2</span><span class="h38-pin" style="left:18.8%;top:62.2%">3</span><span class="h38-pin" style="left:47.9%;top:44.4%">4</span><span class="h38-pin" style="left:69.7%;top:23.3%">5</span><span class="h38-pin" style="left:79.7%;top:52.2%">6</span><span class="h38-pin" style="left:48.3%;top:67.5%">7</span><span class="h38-pin" style="left:79.8%;top:75.6%">8</span><span class="h38-pin goal" style="left:49.1%;top:90.5%">★</span></div>
+          <div class="h38-map-label">🗺️ خريطة المغامرة</div>
+        </div>
+      </section>
     </main>
-
-    <footer class="v36-credit"><span>إعداد القائم بأعمال مدير مساعد: <b>أ. نافجة الحامد</b></span><i>✦</i><span>مديرة المدرسة: <b>أ. عايدة الدوسري</b></span><em dir="ltr">V38.4</em></footer>
+    <footer class="h38-credit"><span>إعداد القائم بأعمال مدير مساعد: <b>أ. نافجة الحامد</b></span><i>✦</i><span>مديرة المدرسة: <b>أ. عايدة الدوسري</b></span><em dir="ltr">V38.11</em></footer>
   </section>
   <section id="diagnosticScreen" class="screen diagnostic-screen">
     <div class="top-hud simple">
@@ -186,9 +159,9 @@ body{background:linear-gradient(180deg,#eef9ff 0%,#f9fdff 100%)}
       <div id="sparkles" class="sparkles"></div>
       <!-- مواقع المحطات مطابقة للمعالم المرسومة في الخريطة (نسبة مئوية من الصورة) -->
       <button class="station-node" data-stage="0" style="--x:49.6%;--y:19.6%"><span>1</span><b>قلعة البحرين</b><small>الحروف والحركات</small></button>
-      <button class="station-node" data-stage="1" style="--x:47.9%;--y:44.4%"><span>2</span><b>باب البحرين</b><small>الأصوات المتشابهة</small></button>
-      <button class="station-node" data-stage="2" style="--x:23.7%;--y:31.1%"><span>3</span><b>المتحف الوطني</b><small>قراءة الكلمات</small></button>
-      <button class="station-node" data-stage="3" style="--x:18.8%;--y:62.2%"><span>4</span><b>شجرة الحياة</b><small>معنى الكلمات</small></button>
+      <button class="station-node" data-stage="1" style="--x:23.7%;--y:31.1%"><span>2</span><b>المتحف الوطني</b><small>الأصوات المتشابهة</small></button>
+      <button class="station-node" data-stage="2" style="--x:18.8%;--y:62.2%"><span>3</span><b>شجرة الحياة</b><small>قراءة الكلمات</small></button>
+      <button class="station-node" data-stage="3" style="--x:47.9%;--y:44.4%"><span>4</span><b>باب البحرين</b><small>معنى الكلمات</small></button>
       <button class="station-node" data-stage="4" style="--x:69.7%;--y:23.3%"><span>5</span><b>جسر الملك فهد</b><small>بناء الجمل</small></button>
       <button class="station-node" data-stage="5" style="--x:79.7%;--y:52.2%"><span>6</span><b>المركز التجاري</b><small>استماع الجمل</small></button>
       <button class="station-node" data-stage="6" style="--x:48.3%;--y:67.5%"><span>7</span><b>حلبة البحرين</b><small>سباق الجمل</small></button>
@@ -221,9 +194,9 @@ body{background:linear-gradient(180deg,#eef9ff 0%,#f9fdff 100%)}
 </div>
 <script src="assets/config.js?v=365"></script>
 <script src="assets/content.js?v=365"></script>
-<script src="assets/game.js?v=384"></script>
-<script src="assets/mamoun-buddy.js?v=381"></script>
+<script src="assets/game.js?v=3810"></script>
+<script src="assets/mamoun-buddy.js?v=389"></script>
 <script src="assets/game-fx.js?v=37"></script>
-<script src="assets/plus.js?v=38"></script>
+<script src="assets/plus.js?v=385"></script>
 </body>
 </html>
