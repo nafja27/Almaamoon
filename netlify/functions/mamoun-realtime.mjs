@@ -27,20 +27,30 @@ export default async(request)=>{
    type:'realtime',
    model:'gpt-realtime-2.1',
    instructions:INSTRUCTIONS,
-   audio:{output:{voice:'marin'}}
+   audio:{
+    input:{
+     /* V38: تقليل ضوضاء الصف، وعدم قطع كلام المأمون عند سماع أي صوت */
+     noise_reduction:{type:'far_field'},
+     turn_detection:{type:'semantic_vad',eagerness:'low',create_response:true,interrupt_response:false},
+     transcription:{model:'gpt-4o-mini-transcribe',language:'ar'}
+    },
+    output:{voice:'marin'}
+   }
   };
 
-  const fd=new FormData();
-  fd.set('sdp',sdp);
-  fd.set('session',JSON.stringify(session));
-
-  const apiResponse=await fetch('https://api.openai.com/v1/realtime/calls',{
-   method:'POST',
-   headers:{authorization:`Bearer ${key}`},
-   body:fd
-  });
-
-  const body=await apiResponse.text();
+  const call=async sess=>{
+   const fd=new FormData();
+   fd.set('sdp',sdp);
+   fd.set('session',JSON.stringify(sess));
+   const r=await fetch('https://api.openai.com/v1/realtime/calls',{method:'POST',headers:{authorization:`Bearer ${key}`},body:fd});
+   return{r,text:await r.text()};
+  };
+  let {r:apiResponse,text:body}=await call(session);
+  /* V38: إذا رفضت الخدمة الإعدادات الجديدة نعود للإعدادات الأصلية حتى لا يتعطل المساعد */
+  if(apiResponse.status===400){
+   console.error('Realtime V38 settings rejected, retrying with basic session:',body.slice(0,300));
+   ({r:apiResponse,text:body}=await call({type:'realtime',model:session.model,instructions:INSTRUCTIONS,audio:{output:{voice:'marin'}}}));
+  }
   if(!apiResponse.ok){
    let detail='',code='';
    try{

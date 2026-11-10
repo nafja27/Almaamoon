@@ -54,3 +54,10 @@ body.plus-talking .screen.active .plus-mascot{animation:plusTalk .32s ease-in-ou
 
 .plus-music-btn{font-family:"Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif;color:#fff}
 @media (prefers-reduced-motion: reduce){.plus-mascot,.plus-mbody{animation:none!important}}
+
+/* V38.2: مربع السماعة كان يكبر ويصغر كله (ويخرج عن حدود البطاقة). الآن المربع ثابت،
+   وتنبض فقط هالة ناعمة خلف السماعة */
+.activity-target.listen-target{animation:none!important;transform:none!important;position:relative;overflow:hidden;isolation:isolate}
+.activity-target.listen-target::before{content:'';position:absolute;left:50%;top:50%;width:1.6em;height:1.6em;margin:-.8em 0 0 -.8em;border-radius:50%;background:radial-gradient(circle,rgba(25,167,216,.28),rgba(25,167,216,0) 70%);z-index:-1;animation:earGlow 2.2s ease-in-out infinite}
+@keyframes earGlow{0%,100%{transform:scale(.85);opacity:.55}50%{transform:scale(1.15);opacity:1}}
+@media (prefers-reduced-motion: reduce){.activity-target.listen-target::before{animation:none}}
