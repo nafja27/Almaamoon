@@ -28,6 +28,8 @@ export default async(request)=>{
   if(!text||!ARABIC.test(text))return json({error:'invalid_text'},400);
   let instructions='تحدث بالعربية الفصحى الواضحة بصوت دافئ وطبيعي ومحادثي، كرفيق تعليمي ودود لطفل يتعلم العربية كلغة ثانية. لا تتحدث كنظام آلي أو كمذيع. استخدم تنغيمًا بشريًا لطيفًا، والتزم بالنص المكتوب كما هو واحترم التشكيل والحركات والمدود بدقة.';
   instructions+=soundInstruction(text);
+  /* V40.2: منع التكرار */
+  instructions+=' انطق النص المكتوب مرة واحدة فقط ثم توقف تمامًا. لا تكرر أي مقطع أو كلمة، ولا تضف أي كلام قبله أو بعده.';
   if(slow)instructions+=' انطق أبطأ قليلًا فقط مع بقاء الإيقاع طبيعيًا. لا تفصل الحروف بطريقة روبوتية.';
   else instructions+=' استخدم سرعة تعليمية هادئة وطبيعية.';
   const isPhoneme=SHORT.test(text)||LONG_A.test(text)||LONG_U.test(text)||LONG_I.test(text);
