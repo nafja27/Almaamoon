@@ -166,7 +166,7 @@ function flash(msg){const x=document.createElement('div');x.className='flash-msg
 function beep(ok){if(!settings.sound)return;if(window.MaamoonFX){window.MaamoonFX.play(ok?'correct':'wrong');return}try{const A=window.AudioContext||window.webkitAudioContext;if(!A)return;const c=beep.ctx||(beep.ctx=new A());const notes=ok?[660,880]:[260,200];notes.forEach((f,i)=>{const o=c.createOscillator(),g=c.createGain();o.connect(g);g.connect(c.destination);o.frequency.value=f;o.type=ok?'sine':'triangle';const t=c.currentTime+i*.09;g.gain.setValueAtTime(.06,t);g.gain.exponentialRampToValueAtTime(.001,t+.16);o.start(t);o.stop(t+.17)})}catch{}}
 function confetti(){if(matchMedia('(prefers-reduced-motion: reduce)').matches)return;const box=document.createElement('div');box.className='confetti';const bits=['⭐','✨','🎉','🟡','🔵','🟢'];for(let i=0;i<36;i++){const s=document.createElement('span');s.textContent=bits[i%bits.length];s.style.left=Math.random()*100+'%';s.style.animationDelay=Math.random()*.6+'s';s.style.animationDuration=(1.6+Math.random()*1.2)+'s';box.appendChild(s)}document.body.appendChild(box);setTimeout(()=>box.remove(),3400)}
 function coach(ar,en,mood){const t=$('coachTitle'),x=$('coachText');if(!t)return;t.innerHTML=esc(ar);x.innerHTML=G(en);const img=document.querySelector('.coach img');if(img&&mood){img.classList.remove('happy','think');void img.offsetWidth;img.classList.add(mood)}}
-function refreshHud(){const s=current();if(!s)return;const set=(id,v)=>{const e=$(id);if(e)e.textContent=v};set('hudName',s.name);set('hudGrade',s.grade);set('hudPoints',s.points);set('hudKeys',keys(s));set('hudLevel',s.cefr);set('stagePoints',s.points);set('writePoints',s.points);set('checkPoints',s.points)}
+function refreshHud(){const s=current();if(!s)return;const set=(id,v)=>{const e=$(id);if(e)e.textContent=v};set('hudName',s.name);set('hudGrade',s.grade);set('hudPoints',s.points);set('hudKeys',keys(s));set('hudLevel',s.cefr);set('stagePoints',s.points);set('writePoints',s.points);set('checkPoints',s.points);set('tlabPoints',s.points);set('azharPoints',s.points)}
 function setCombo(n){combo=n;const p=$('comboPill');if(!p)return;p.hidden=n<2;p.querySelector('b').textContent=n;if(n>=2){p.classList.remove('pop');void p.offsetWidth;p.classList.add('pop')}}
 /* نقاط: 10 لكل إجابة صحيحة من أول مرة + مكافأة سلسلة */
 function reward(ok,firstTry=true){const s=current();if(!s)return;if(ok&&firstTry){setCombo(combo+1);s.points+=10+(combo>=3?5:0)}else if(!ok)setCombo(0);persist();refreshHud();plusEmit('answer',{ok,firstTry,combo})}
@@ -1318,9 +1318,251 @@ function bind(){$('loginBtn').onclick=startLogin;$('createBtn').onclick=createAc
  $('overlay').onclick=e=>{if(e.target.id==='overlay')softClose()};document.addEventListener('keydown',e=>{if(e.key==='Escape')softClose()});
  $('stageSoundBtn').onclick=()=>{settings.sound=!settings.sound;persist();$('stageSoundBtn').textContent=settings.sound?'🔊':'🔇';if(!settings.sound)stopAudio()};
  bindToggles()}
+$('tlabBackBtn').onclick=()=>tlBack();$('azharBackBtn').onclick=()=>azBack();
 bind();refreshResume();applyLearnerPrefs();cloudInit();
 setTimeout(voiceBanner,1500);
 if(session&&session.role==='admin')showAdmin();
+/* ================= V39: مختبر المعلمة — حرف + حركة تختارهما المعلمة =================
+   • وضع المعلمة على الجهاز: تختار الحرف والحركة ويبدأ الطالب فورًا.
+   • تكليف من لوحة الإدارة: لطالب أو صف أو شعبة أو للجميع، ويظهر للطالب «واجب المعلمة».
+   • الجلسة: تعرّف ← اسمع واختر ← كلمات الحرف مع الحركة ← أين المقطع في الكلمة؟ ← الكتابة. */
+const TL_MARKS=[
+ {k:'fatha',n:'الفَتْحَة',en:'fatha',d:'َ'},{k:'damma',n:'الضَّمَّة',en:'damma',d:'ُ'},{k:'kasra',n:'الكَسْرَة',en:'kasra',d:'ِ'},
+ {k:'sukun',n:'السُّكُون',en:'sukun',d:'ْ'},
+ {k:'tanfath',n:'تَنْوِين الفَتْح',en:'tanween (an)',d:'ً'},{k:'tandamm',n:'تَنْوِين الضَّمّ',en:'tanween (un)',d:'ٌ'},{k:'tankasr',n:'تَنْوِين الكَسْر',en:'tanween (in)',d:'ٍ'},
+ {k:'longa',n:'مَدّ بِالأَلِف',en:'long aa',d:'َا'},{k:'longu',n:'مَدّ بِالوَاو',en:'long uu',d:'ُو'},{k:'longi',n:'مَدّ بِاليَاء',en:'long ii',d:'ِي'}];
+const TL_FAMILY={fatha:['fatha','damma','kasra','sukun'],damma:['fatha','damma','kasra','sukun'],kasra:['fatha','damma','kasra','sukun'],sukun:['sukun','fatha','damma','kasra'],
+ tanfath:['tanfath','tandamm','tankasr','fatha'],tandamm:['tanfath','tandamm','tankasr','damma'],tankasr:['tanfath','tandamm','tankasr','kasra'],
+ longa:['longa','longu','longi','fatha'],longu:['longa','longu','longi','damma'],longi:['longa','longu','longi','kasra']};
+const tlMark=k=>TL_MARKS.find(m=>m.k===k)||TL_MARKS[0];
+const TL_LETTERS=ALPHABET.map(L=>L.l==='ا'?'أ':L.l);
+function tlLetterName(l){const L=ALPHABET.find(x=>x.l===l||(l==='أ'&&x.l==='ا'));return L?L.name:l}
+/* الشكل المكتوب للمقطع */
+function tlSyl(l,k){const m=tlMark(k);if(k==='sukun')return 'أَ'+l+'ْ';if(k==='tanfath')return l+'ً'+(l==='ة'||l==='ء'?'':'ا');if(l==='أ'&&k==='kasra')return 'إِ';if(l==='أ'&&k==='longa')return 'آ';return l+m.d}
+/* بنك الكلمات: كلمات اللعبة + الكلمات الإضافية + تنوين مولّد من الأسماء */
+let tlBankCache=null;
+function tlBank(){if(tlBankCache)return tlBankCache;const map=new Map();const add=(w,e,en,gen)=>{w=String(w||'').trim();if(!w||/\s/.test(w)||!/[ً-ْ]/.test(w))return;const o=map.get(w);if(o){if(!o.e&&e){o.e=e;o.en=en}}else map.set(w,{w,e:e||'',en:en||'',gen:!!gen})};
+ Object.keys(VOCAB).forEach(w=>add(w,VOCAB[w].e,VOCAB[w].en));(window.MAAMOON_TLAB_WORDS||[]).forEach(x=>add(x[0],x[1],x[2]));
+ JSON.stringify(BANK).replace(/[ء-يً-ْٰ]{2,}/g,w=>{add(w);return w});
+ /* تنوين: من الأسماء المصورة غير المعرّفة */
+ [...map.values()].filter(o=>o.e&&!/^ال/.test(o.w)&&(VOCAB[o.w]?(VOCAB[o.w].k||'n')==='n':true)).forEach(o=>{const base=o.w.replace(/[ً-ْ]+$/,'');const last=base.slice(-1);if(!/[ء-ي]/.test(last)||'اىو'.includes(last)||o.w.slice(-2).includes('ّ'))return;
+  add(base+'ٌ',o.e,o.en,1);add(base+'ٍ',o.e,o.en,1);add(base+'ً'+(last==='ة'||last==='ء'?'':'ا'),o.e,o.en,1)});
+ tlBankCache=[...map.values()];return tlBankCache}
+/* مطابقة الحرف مع الحركة داخل الكلمة (مع الشدة) */
+function tlRe(l,k){const L=l==='أ'?'[أإآ]':l.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');const S='ّ?';
+ const R={fatha:L+S+'َ(?![اى])',damma:L+S+'ُ(?!و(?![ً-ْ]))',kasra:L+S+'ِ(?!ي(?![ً-ْ]))',sukun:L+'ْ',tanfath:L+S+'ً',tandamm:L+S+'ٌ',tankasr:L+S+'ٍ',
+  longa:L+S+'َ[اى]',longu:L+S+'ُو(?![ً-ْ])',longi:L+S+'ِي(?![ً-ْ])'};if(l==='أ'){R.kasra='إِ?';R.longa='(?:آ|أَا)'}return new RegExp(R[k])}
+function tlWords(l,k){const re=tlRe(l,k);const reG=new RegExp(re.source,'g');const short=['fatha','damma','kasra'].includes(k);
+ const ok=o=>{const gs=graphemes(o.w);if(gs.length<2)return false;if(o.gen&&!/^tan/.test(k))return false;if(!re.test(o.w))return false;
+  /* الحركة في آخر الكلمة فقط (علامة إعراب مثل يَكْتُبُ) لا تناسب المبتدئ؛ نقبلها فقط للكلمات المصوّرة */
+  if(short&&!o.e){let m,mid=false;reG.lastIndex=0;while((m=reG.exec(o.w))){const rest=o.w.slice(m.index+m[0].length).replace(/[\u064B-\u0652]/g,'');if(rest.length){mid=true;break}}if(!mid)return false}
+  return true};
+ const seen=new Set();return tlBank().filter(ok).filter(o=>{const b=o.w.replace(/[\u064B-\u0652]/g,'');if(seen.has(b))return false;seen.add(b);return true}).sort((a,b)=>(b.e?1:0)-(a.e?1:0))}
+function tlKey(l,k){return l+'|'+k}
+/* المهام المكلّفة */
+function tlTasks(){db.tlTasks=db.tlTasks||[];return db.tlTasks}
+function tlTaskFor(s,t){if(!s)return false;const v=t.to||{type:'all'};if(v.type==='all')return true;if(v.type==='grade')return String(s.grade)===String(v.g);if(v.type==='class')return String(s.grade)===String(v.g)&&String(s.section||'')===String(v.s||'');if(v.type==='student')return s.id===v.id;return false}
+function tlResult(s,key){s.tlab=s.tlab||{};return s.tlab[key]}
+function tlOpenTasks(s){return tlTasks().filter(t=>tlTaskFor(s,t)&&!((tlResult(s,tlKey(t.l,t.k))||{}).best>=80))}
+function tlToLabel(t){const v=t.to||{type:'all'};return v.type==='all'?'كل الطلبة':v.type==='grade'?'الصف '+v.g:v.type==='class'?'الصف '+v.g+'/'+(v.s||''):((db.students.find(x=>x.id===v.id)||{}).name||'طالب')}
+
+/* ---------- لوحة اختيار الحرف والحركة ---------- */
+function tlPicker({title,onStart,onAssign,preset}={}){let sel=(preset&&preset.l)||'ب',mk=(preset&&preset.k)||'fatha';
+ overlay(`<div class="tl-picker"><h2>${title||'🧑‍🏫 مختبر المعلمة'}</h2><p class="muted">اختاري الحرف ثم الحركة.</p><div class="tl-letters" dir="rtl">${TL_LETTERS.map(l=>`<button type="button" class="tl-l" data-l="${l}">${l}</button>`).join('')}</div><div class="tl-marks">${TL_MARKS.map(m=>`<button type="button" class="tl-m" data-k="${m.k}"><b data-sylk="${m.k}"></b><small>${m.n}</small></button>`).join('')}</div><div class="tl-preview" data-prev></div><div data-assign></div><div class="form-actions"><button class="big-btn ghost" id="cancelOverlay">إلغاء</button>${onAssign?'<button class="big-btn gold" id="tlAssignBtn">📌 تكليف</button>':''}${onStart?'<button class="big-btn primary" id="tlStartBtn">▶ ابدأ التدريب</button>':''}</div></div>`);
+ const card=$('overlayCard');card.classList.add('tl-wide');
+ if(onAssign){const grades=[...new Set(db.students.map(s=>String(s.grade)))].sort();const classes=[...new Set(db.students.map(s=>s.grade+'/'+(s.section||'')))].sort();
+  card.querySelector('[data-assign]').innerHTML=`<div class="tl-assign"><label>لمن؟</label><select id="tlTo"><option value="all">كل الطلبة</option>${grades.map(g=>`<option value="grade:${g}">الصف ${g}</option>`).join('')}${classes.map(c=>`<option value="class:${c}">الصف ${c}</option>`).join('')}${db.students.map(s=>`<option value="student:${s.id}">👤 ${esc(s.name)} (${esc(s.code)})</option>`).join('')}</select></div>`}
+ const draw=()=>{card.querySelectorAll('.tl-l').forEach(b=>b.classList.toggle('sel',b.dataset.l===sel));card.querySelectorAll('.tl-m').forEach(b=>{b.classList.toggle('sel',b.dataset.k===mk);b.querySelector('b').textContent=tlSyl(sel,b.dataset.k)});
+  const ws=tlWords(sel,mk);card.querySelector('[data-prev]').innerHTML=`<span class="tl-big">${tlSyl(sel,mk)}</span><div><b>${esc(tlLetterName(sel))} مع ${esc(tlMark(mk).n)}</b><small>${ws.length?`${ws.length} كلمة للتدريب، مثل: ${ws.slice(0,5).map(o=>esc(o.w)).join('، ')}`:'لا توجد كلمات كافية لهذا الاختيار؛ سيتدرب الطالب على المقطع والكتابة فقط.'}</small></div>`};
+ card.querySelectorAll('.tl-l').forEach(b=>b.onclick=()=>{sel=b.dataset.l;draw();speak(tlLetterName(sel),.85)});
+ card.querySelectorAll('.tl-m').forEach(b=>b.onclick=()=>{mk=b.dataset.k;draw();speak(tlSyl(sel,mk),.7)});
+ $('cancelOverlay').onclick=closeOverlay;
+ if(onStart)$('tlStartBtn').onclick=()=>{closeOverlay();onStart(sel,mk)};
+ if(onAssign)$('tlAssignBtn').onclick=()=>{const v=$('tlTo').value;const [type,rest]=v.split(':');let to={type:'all'};if(type==='grade')to={type,g:rest};else if(type==='class'){const [g,s]=rest.split('/');to={type,g,s}}else if(type==='student')to={type,id:rest};onAssign(sel,mk,to)};
+ draw()}
+/* دخول المعلمة السريع على الجهاز (بدون تسجيل خروج الطالب) */
+function tlTeacherGate(fn){if(isAdmin())return fn();overlay(`<h2>🧑‍🏫 وضع المعلمة</h2><div class="form-field"><label for="tlPin">الرقم السري للإدارة</label><input id="tlPin" type="password" inputmode="numeric" dir="ltr" autocomplete="off"></div><div class="form-actions"><button class="big-btn ghost" id="cancelOverlay">إلغاء</button><button class="big-btn primary" id="tlPinGo">دخول</button></div>`);
+ $('cancelOverlay').onclick=closeOverlay;const go=()=>{const p=$('tlPin').value.trim();const ok=CLOUD?(p&&p===(db.teacherPin||'')):(db.admins||[]).some(a=>String(a.pin)===p);if(ok){closeOverlay();fn()}else{flash('الرقم السري غير صحيح');$('tlPin').value=''}};$('tlPinGo').onclick=go;$('tlPin').onkeydown=e=>{if(e.key==='Enter')go()}}
+function tlOpenTeacherMode(){tlTeacherGate(()=>tlPicker({title:'🧑‍🏫 مختبر المعلمة — تدريب الآن',onStart:(l,k)=>tlRun(l,k,{source:'teacher'})}))}
+
+/* ---------- الجلسة ---------- */
+let tlReturn='startScreen';
+function tlBoard(){return $('tlabBoard')}
+function tlRun(l,k,{source='task'}={}){tlReturn=$('worldScreen').classList.contains('active')?'worldScreen':$('labScreen').classList.contains('active')?'labScreen':current()?'worldScreen':'startScreen';
+ const m=tlMark(k),syl=tlSyl(l,k);$('tlabTitle').innerHTML=`🧑‍🏫 ${esc(tlLetterName(l))} مع ${esc(m.n)}`;show('tlabScreen');
+ const fam=TL_FAMILY[k].filter(x=>x!==k);const confus=(confusableOf(l==='أ'?'ا':l)||[]).filter(x=>x!==l&&x!=='ا').slice(0,3);
+ const ws=shuffle(tlWords(l,k));const pic=ws.filter(o=>o.e);
+ /* بناء الأسئلة */
+ const Q=[];
+ const listenOpts=()=>{const set=new Set([syl]);shuffle(fam).forEach(f=>set.add(tlSyl(l,f)));shuffle(confus).forEach(c=>set.add(tlSyl(c,k)));return shuffle([...set].slice(0,4))};
+ for(let i=0;i<4;i++)Q.push({t:'listen'});
+ shuffle(ws).slice(0,4).forEach(o=>Q.push({t:'word',o}));
+ ws.filter(o=>graphemes(o.w).length>=2).slice(0,3).forEach(o=>Q.push({t:'where',o}));
+ Q.push({t:'trace'});Q.push({t:'mark'});if(Q.filter(q=>q.t==='listen').length&&ws.length<2)Q.push({t:'mark'});
+ let i=0,score=0;const n=Q.length;
+ const head=(title,en)=>`<div class="activity-title"><div class="cefr-tag">${esc(tlLetterName(l))} + ${esc(m.n)}</div><h2>${title}</h2>${G(en)}${progressDots(i,n)}</div>`;
+ const next=()=>{i++;if(i<n)drawQ();else finish()};
+ /* شاشة التعرّف */
+ function intro(){const b=tlBoard();b.innerHTML=`<div class="tl-intro"><div class="tl-hero">${syl}</div><p class="prompt-ar">هَذَا حَرْفُ <b>${esc(tlLetterName(l))}</b> مَعَ <b>${esc(m.n)}</b>: «${syl}»</p>${G(`${tlLetterName(l)} with ${m.en}`)}<div class="sound-actions"><button class="control-btn" data-h>🔊 استمع</button><button class="control-btn" data-s>🐢 ببطء</button></div>${ws.length?`<div class="tl-examples">${ws.slice(0,6).map(o=>`<button class="tl-ex" data-w="${esc(o.w)}">${o.e?`<span>${o.e}</span>`:''}<b>${tlMarkWord(o.w,l,k)}</b></button>`).join('')}</div>`:''}<button class="big-btn primary tl-go">ابدأ ▶</button></div>`;
+  b.querySelector('[data-h]').onclick=()=>speak(syl,.7);b.querySelector('[data-s]').onclick=()=>speak(syl,.45);b.querySelectorAll('.tl-ex').forEach(x=>x.onclick=()=>speak(x.dataset.w,.75));b.querySelector('.tl-go').onclick=()=>drawQ();later(()=>speak(syl,.7),350)}
+ function drawQ(){clearTimers();const q=Q[i],b=tlBoard();
+  if(q.t==='listen'){const opts=listenOpts(),ans=opts.indexOf(syl);b.innerHTML=head('اسْمَعْ وَاخْتَرْ','Listen and choose')+`<div class="activity-target listen-target" aria-hidden="true">🎧</div><div class="sound-actions"><button class="control-btn" data-h>🔊 استمع</button><button class="control-btn" data-s>🐢 ببطء</button></div><div data-c></div><div class="feedback" data-f></div><div class="after-actions" data-a></div>`;
+   b.querySelector('[data-h]').onclick=()=>speak(syl,.7);b.querySelector('[data-s]').onclick=()=>speak(syl,.45);later(()=>speak(syl,.7),300);
+   const btns=renderOptions(b.querySelector('[data-c]'),opts,{withAudio:false,tl:false,onPick:idx=>{const ok=idx===ans;lockAndMark(btns,idx,ans,true);beep(ok);reward(ok);if(ok){score++;const p=praise();fb(b,true,p)}else{logError('letters',syl);fb(b,false);later(()=>speak(syl,.65),400)}nextButton(b.querySelector('[data-a]'),'',next)}});return}
+  if(q.t==='word'){const o=q.o;const others=shuffle(tlBank().filter(x=>x.w!==o.w&&x.e&&x.e!==o.e)).slice(0,2);
+   b.innerHTML=head('اقْرَأِ الكَلِمَةَ','Read the word')+`<div class="activity-target small"><span class="ar-text">${tlMarkWord(o.w,l,k)}</span></div><div class="sound-actions"><button class="control-btn help-btn" data-h>💡 اسمع الكلمة</button></div><p class="prompt-ar small">${o.e?'أَيُّ صُورَةٍ هِيَ؟':'أَيُّ صَوْتٍ هُوَ هَذِهِ الكَلِمَةُ؟'}</p><div data-c></div><div class="feedback" data-f></div><div class="after-actions" data-a></div>`;
+   let helped=false;b.querySelector('[data-h]').onclick=()=>{helped=true;speak(o.w,.65)};const box=b.querySelector('[data-c]');
+   const done=(ok)=>{beep(ok);reward(ok,!helped);if(ok){score+=helped?.5:1;fb(b,true,praise())}else{logError('wordReading',o.w);fb(b,false)}later(()=>speak(o.w,.65),300);nextButton(b.querySelector('[data-a]'),'',next);plusEmit('say',{host:b.querySelector('[data-a]'),text:o.w,kind:'word'})};
+   if(o.e&&others.length===2){const all=shuffle([o,...others]);const ans=all.indexOf(o);const btns=renderOptions(box,all.map(x=>({e:x.e,en:x.en})),{withAudio:false,onPick:idx=>{lockAndMark(btns,idx,ans);done(idx===ans)}})}
+   else{const pool=shuffle(tlBank().filter(x=>x.w!==o.w&&graphemes(x.w).length>=2)).slice(0,2);const all=shuffle([o,...pool]);const ans=all.indexOf(o);box.className='choice-grid audio-cards';const btns=[];
+    all.forEach((x,idx)=>{const c=document.createElement('div');c.className='audio-card';c.innerHTML=`<button class="control-btn" data-p>🔊 ${idx+1}</button><button class="choice pick" data-k>✓ هَذِهِ</button>`;c.querySelector('[data-p]').onclick=()=>speak(x.w,.7);const pb=c.querySelector('[data-k]');pb.onclick=()=>{if(pb.disabled)return;lockAndMark(btns,idx,ans);done(idx===ans)};btns.push(pb);box.appendChild(c)})}
+   return}
+  if(q.t==='where'){const o=q.o;const gs=graphemes(o.w);const re=tlRe(l,k);const hit=gs.map((g,j)=>re.test(g+(gs[j+1]||'').replace(/[ً-ْ]/g,'')));if(!hit.some(Boolean))return next();
+   b.innerHTML=head(`أَيْنَ «${syl}» فِي الكَلِمَةِ؟`,`Where is ${translit(syl)} in the word?`)+`<div class="tl-word-tiles" dir="rtl">${gs.map((g,j)=>`<button class="tl-tile" data-j="${j}">${esc(g)}</button>`).join('')}</div><div class="sound-actions"><button class="control-btn" data-h>🔊 الكلمة</button><button class="control-btn" data-s>🔊 ${syl}</button></div><div class="feedback" data-f></div><div class="after-actions" data-a></div>`;
+   b.querySelector('[data-h]').onclick=()=>speak(o.w,.7);b.querySelector('[data-s]').onclick=()=>speak(syl,.7);later(()=>speak(o.w,.7),300);let tries=0,fin=false;
+   b.querySelectorAll('.tl-tile').forEach(t=>t.onclick=()=>{if(fin)return;const j=+t.dataset.j;if(hit[j]){fin=true;t.classList.add('good');beep(true);reward(true,tries===0);score+=tries===0?1:.5;fb(b,true,praise());speak(gs[j],.7);b.querySelectorAll('.tl-tile').forEach((x,q2)=>{if(hit[q2])x.classList.add('good')});nextButton(b.querySelector('[data-a]'),'',next)}
+    else{tries++;t.classList.add('bad');beep(false);reward(false);speak(gs[j],.7);if(tries>=2){fin=true;logError('letters',syl);b.querySelectorAll('.tl-tile').forEach((x,q2)=>{if(hit[q2])x.classList.add('good')});fb(b,false);nextButton(b.querySelector('[data-a]'),'',next)}}});return}
+  if(q.t==='trace'){const glyph=l==='أ'?'ا':l;b.innerHTML=head(`اكْتُبْ حَرْفَ ${tlLetterName(l)}`,'Trace the letter')+`<p class="prompt-ar">تَتَبَّعِ الحَرْفَ بِإِصْبَعِكَ.</p><div data-pad></div><div class="after-actions" data-a></div>`;
+   tracePad(b.querySelector('[data-pad]'),glyph,{onResult:credit=>{score+=credit;reward(credit>0,credit===1);if(credit>0)praise();else logError('writing',glyph);nextButton(b.querySelector('[data-a]'),'',next)}});return}
+  if(q.t==='mark'){const choices=shuffle([k,...shuffle(TL_FAMILY[k].filter(x=>x!==k)).slice(0,2)]);const ans=choices.indexOf(k);
+   b.innerHTML=head('ضَعِ الحَرَكَةَ المُنَاسِبَةَ','Add the right mark')+`<p class="prompt-ar">اسْمَعْ، ثُمَّ اخْتَرْ كَيْفَ نَكْتُبُ «${syl}».</p><div class="sound-actions"><button class="control-btn" data-h>🔊 استمع</button></div><div class="tl-mark-box"><span class="tl-big" data-prev>${l}</span></div><div data-c></div><div class="feedback" data-f></div><div class="after-actions" data-a></div>`;
+   b.querySelector('[data-h]').onclick=()=>speak(syl,.7);later(()=>speak(syl,.7),300);
+   const btns=renderOptions(b.querySelector('[data-c]'),choices.map(x=>tlSyl(l,x)),{withAudio:false,tl:false,onPick:idx=>{const ok=idx===ans;lockAndMark(btns,idx,ans,true);b.querySelector('[data-prev]').textContent=tlSyl(l,choices[idx]);beep(ok);reward(ok);if(ok){score++;fb(b,true,praise())}else{logError('writing',syl);fb(b,false);later(()=>{b.querySelector('[data-prev]').textContent=syl;speak(syl,.65)},700)}nextButton(b.querySelector('[data-a]'),'',next)}});return}
+ }
+ function fb(b,ok,p){const f=b.querySelector('[data-f]');if(!f)return;f.className='feedback '+(ok?'good':'bad');f.innerHTML=ok?`<b>${p[0]}</b>${G(p[1])}`:`الإِجَابَةُ الصَّحِيحَةُ مُلَوَّنَةٌ بِالأَخْضَرِ. اسْتَمِعْ مَرَّةً أُخْرَى.${G('The right answer is in green. Listen again.')}`}
+ function finish(){const pct=Math.round(score/Math.max(1,n)*100),stars=pct>=95?3:pct>=85?2:pct>=60?1:0;const s=current();const key=tlKey(l,k);
+  if(s){s.tlab=s.tlab||{};const r=s.tlab[key]||{l,k,best:0,tries:0};r.tries++;r.last=pct;r.best=Math.max(r.best||0,pct);r.date=today();s.tlab[key]=r;if(pct>=80)s.points+=10+stars*5;persist();refreshHud()}
+  if(pct>=80){confetti();beep(true)}plusEmit('mission',{pass:pct>=80,stars:Math.max(1,stars),score:pct,stationDone:false});
+  const b=tlBoard();b.innerHTML=`<div class="stage-finish"><div class="trophy">${pct>=80?'⭐':'🛟'}</div><h2>${pct>=80?'أَحْسَنْتَ! أَتْقَنْتَ «'+syl+'»':'نَتَدَرَّبُ مَرَّةً أُخْرَى'}</h2><div class="stars-row">${[1,2,3].map(x=>`<span class="${x<=stars?'on':''}" style="animation-delay:${x*.18}s">★</span>`).join('')}</div><div class="mastery-badge ${pct<80?'support-score':''}">${pct}%</div>${pct<80?'<p>تحتاج إلى 80% للإتقان.</p>':''}<div class="form-actions center-row"><button class="big-btn ghost" data-r>🔁 مرة أخرى</button><button class="big-btn primary" data-b>رجوع ▶</button></div></div>`;
+  b.querySelector('[data-r]').onclick=()=>tlRun(l,k,{source});b.querySelector('[data-b]').onclick=tlBack}
+ intro()}
+function tlBack(){if(tlReturn==='worldScreen'&&current()){prepareWorld();show('worldScreen')}else if(tlReturn==='labScreen')openLab();else{show('startScreen');refreshResume()}}
+/* الكلمة مع تلوين المقطع المطلوب */
+function tlMarkWord(w,l,k){const re=tlRe(l,k);const gs=graphemes(w);return gs.map((g,j)=>re.test(g+(gs[j+1]||'').replace(/[ً-ْ]/g,''))?`<mark class="tl-hit">${esc(g)}</mark>`:esc(g)).join('')}
+
+/* ---------- ربط المختبر بالشاشات ---------- */
+/* مختبر الحروف: زر «وضع المعلمة» */
+openLab=(orig=>function(from){orig(from);const lc=$('labContent');if(lc&&!lc.querySelector('.tl-lab-row')){const r=document.createElement('div');r.className='center-row tl-lab-row';r.innerHTML=`<button class="big-btn teal" id="tlTeacherBtn">🧑‍🏫 وضع المعلمة: حرف + حركة</button>`;const s=current();const open=s?tlOpenTasks(s):[];if(open.length)r.innerHTML+=open.slice(0,3).map(t=>`<button class="big-btn gold tl-task-btn" data-l="${t.l}" data-k="${t.k}">📌 واجب: ${tlSyl(t.l,t.k)}</button>`).join('');lc.prepend(r);$('tlTeacherBtn').onclick=tlOpenTeacherMode;r.querySelectorAll('.tl-task-btn').forEach(x=>x.onclick=()=>tlRun(x.dataset.l,x.dataset.k))}})(openLab);
+/* الخريطة: بطاقة «واجب المعلمة» */
+prepareWorld=(orig=>function(){orig.apply(this,arguments);const s=current();let el=$('tlTaskChip');const open=s?tlOpenTasks(s):[];if(!open.length){if(el)el.remove();return}
+ if(!el){el=document.createElement('button');el.id='tlTaskChip';el.className='tl-task-chip';const panel=$('missionPanel');(panel||$('worldScreen')).prepend(el)}
+ const t=open[0];el.innerHTML=`<span>📌 واجب المعلمة</span><b>${tlSyl(t.l,t.k)}</b><small>${esc(tlLetterName(t.l))} مع ${esc(tlMark(t.k).n)}${open.length>1?` · و${open.length-1} غيره`:''}</small>`;el.onclick=()=>tlRun(t.l,t.k)})(prepareWorld);
+/* لوحة الإدارة: بطاقة التكليفات */
+showAdmin=(orig=>function(){orig.apply(this,arguments);if(!isAdmin())return;const host=$('adminContent');if(!host)return;const card=document.createElement('div');card.className='admin-card tl-admin';
+ const render=()=>{const tasks=tlTasks();card.innerHTML=`<div class="admin-head"><div><h2>🧑‍🏫 مختبر المعلمة: الحرف والحركة</h2><p>اختاري حرفًا وحركة (فتحة، ضمة، كسرة، سكون، تنوين، مد) وكلّفي به طالبًا أو صفًا، أو درّبي الطالب الآن على هذا الجهاز.</p></div><div class="admin-actions"><button class="big-btn gold" id="tlNewTask">📌 تكليف جديد</button><button class="big-btn teal" id="tlNow">▶ تدريب الآن</button></div></div>${tasks.length?`<table class="admin-table"><thead><tr><th>المقطع</th><th>الحرف والحركة</th><th>لمن</th><th>أتقنه</th><th>التاريخ</th><th></th></tr></thead><tbody>${tasks.map(t=>{const who=db.students.filter(s=>tlTaskFor(s,t));const doneN=who.filter(s=>((tlResult(s,tlKey(t.l,t.k))||{}).best||0)>=80).length;return`<tr><td class="tl-cell">${tlSyl(t.l,t.k)}</td><td>${esc(tlLetterName(t.l))} مع ${esc(tlMark(t.k).n)}</td><td>${esc(tlToLabel(t))}</td><td><b>${doneN}</b> / ${who.length}</td><td dir="ltr">${esc(t.date||'')}</td><td><button class="mini-report" data-del="${t.id}">حذف</button></td></tr>`}).join('')}</tbody></table>`:'<p class="empty-state">لا توجد تكليفات بعد.</p>'}`;
+  card.querySelector('#tlNewTask').onclick=()=>tlPicker({title:'📌 تكليف حرف وحركة',onAssign:(l,k,to)=>{tlTasks().unshift({id:'t'+Date.now(),l,k,to,date:today()});persist();closeOverlay();flash('تم التكليف ✓');render()}});
+  card.querySelector('#tlNow').onclick=()=>tlPicker({title:'▶ تدريب الآن على هذا الجهاز',onStart:(l,k)=>tlRun(l,k,{source:'teacher'})});
+  card.querySelectorAll('[data-del]').forEach(x=>x.onclick=()=>{db.tlTasks=tlTasks().filter(t=>t.id!==x.dataset.del);persist();render()})};
+ render();const first=host.querySelector('.admin-card');if(first&&first.nextSibling)host.insertBefore(card,first.nextSibling);else host.appendChild(card)})(showAdmin);
+/* تقرير الطالب: نتائج الحرف والحركة */
+showStudentReport=(orig=>function(id){orig.apply(this,arguments);const s=db.students.find(x=>x.id===id);const card=$('overlayCard');if(!s||!card)return;const res=Object.values(s.tlab||{});const open=tlOpenTasks(s);
+ const box=document.createElement('div');box.className='tl-report';box.innerHTML=`<h3>🧑‍🏫 الحرف والحركة</h3>${res.length?`<div class="tl-res">${res.map(r=>`<span class="${r.best>=80?'ok':'no'}"><b>${tlSyl(r.l,r.k)}</b>${r.best}%<small>${r.tries} محاولة</small></span>`).join('')}</div>`:'<p class="muted">لم يتدرب بعد.</p>'}${open.length?`<p>📌 واجبات مفتوحة: ${open.map(t=>tlSyl(t.l,t.k)).join('، ')}</p>`:''}`;
+ const actions=card.querySelector('.form-actions:last-of-type');if(actions)actions.before(box);else card.appendChild(box)})(showStudentReport);
+
+/* ================= V40: «خذ بيدي لأزهر» — أنشطة إضافية مستوحاة من كراسة «حروف الهجاء» =================
+   لكل حرف جلسة: مَيِّزِ الحَرْفَ وَلَوِّنْهُ ← أَشْكَالُ الحَرْفِ ← اكْتُبِ الحَرْفَ بِشَكْلِهِ الصَّحِيحِ فِي الكَلِمَةِ
+   ← ضَعْ دَائِرَةً حَوْلَ الحَرْفِ ← الحَرْفُ النَّاقِصُ ← كَلِمَاتُنَا السِّرِّيَّةُ ← تَحَدِّي القِرَاءَةِ ← أُفَكِّرُ ← أَكْتُبُ الحَرْفَ
+   ثم «الوصف والتقدير» و«رأيك في النشاط» كما في أوراق العمل. */
+const AZ=window.MAAMOON_AZHAR||{groups:[],words:{}};
+const AZ_NONJOIN='ادذرزوأإآ';
+const azJoins=c=>!!c&&!AZ_NONJOIN.includes(c)&&/[ء-ي]/.test(c);
+const azBase=g=>g.replace(/[ً-ْ]/g,'');
+function azName(l){const L=ALPHABET.find(x=>x.l===l||(l==='أ'&&x.l==='ا'));return L?L.name:l}
+function azWords(l){return (AZ.words[l]||[]).slice()}
+/* شكل الحرف في موضعه داخل الكلمة */
+function azFormOf(gs,j){const c=azBase(gs[j]),prev=j>0?azBase(gs[j-1]):'',hasNext=j<gs.length-1;const jp=azJoins(prev),jn=azJoins(c)&&hasNext;return jp&&jn?'mid':jp?'end':jn?'start':'alone'}
+function azGlyph(l,form,mark){mark=mark||'َ';const nj=!azJoins(l);if(nj&&form==='start')form='alone';if(nj&&form==='mid')form='end';return form==='start'?l+mark+'ـ':form==='mid'?'ـ'+l+mark+'ـ':form==='end'?'ـ'+l+mark:l+mark}
+const AZ_FORM_NAME={start:'أَوَّلَ الكَلِمَةِ',mid:'وَسَطَ الكَلِمَةِ',end:'آخِرَ الكَلِمَةِ',alone:'مُنْفَصِلًا'};
+function azLetterIn(w,l){const gs=graphemes(w);return gs.map((g,j)=>azBase(g)===l||(l==='أ'&&/[أإآ]/.test(azBase(g)))?j:-1).filter(j=>j>=0)}
+function azRes(s,l){s.azhar=s.azhar||{};return s.azhar[l]}
+function azBoard(){return $('azharBoard')}
+let azReturn='worldScreen';
+function openAzhar(from){azReturn=from||(current()?'worldScreen':'startScreen');show('azharScreen');$('azharTitle').innerHTML='🤝 خذ بيدي لأزهر';const s=current();
+ const b=azBoard();b.innerHTML=`<div class="az-home"><div class="az-banner"><b>🤝 خُذْ بِيَدِي لِأَزْهَرَ</b><span>أَنْشِطَةٌ إِضَافِيَّةٌ لِكُلِّ حَرْفٍ: مَيِّزْ، لَوِّنْ، اكْتُبْ، اقْرَأْ.</span>${G('Extra letter activities: spot, colour, write and read.')}</div>${AZ.groups.map(g=>`<h3 class="az-gtitle">${g.name}</h3><div class="az-grid">${g.letters.map(l=>{const r=s?azRes(s,l):null;const st=r?(r.best>=90?3:r.best>=70?2:r.best>=50?1:0):-1;return`<button class="az-letter ${r&&r.best>=70?'done':''}" data-l="${l}"><b>${l}</b><small>${st>=0?'★'.repeat(st)+'☆'.repeat(3-st):'ابدأ'}</small></button>`}).join('')}</div>`).join('')}</div>`;
+ b.querySelectorAll('.az-letter').forEach(x=>x.onclick=()=>azRun(x.dataset.l))}
+function azBack(){if(azReturn==='worldScreen'&&current()){prepareWorld();show('worldScreen')}else if(azReturn==='labScreen')openLab();else{show('startScreen');refreshResume()}}
+
+function azRun(l){$('azharTitle').innerHTML=`🤝 حَرْفُ ${esc(azName(l))}`;const syl=(l==='أ'?'أَ':l+'َ');const words=shuffle(azWords(l));
+ const group=(AZ.groups.find(g=>g.letters.includes(l))||{letters:[]}).letters;
+ const others=shuffle([...new Set([...(confusableOf(l)||[]),...group])].filter(x=>x!==l&&x!=='ا'));
+ const steps=['spot','forms','fill','circle','missing','secret','read','think','trace'];
+ let si=0,score=0,total=0;const n=steps.length;
+ const head=(t,en)=>`<div class="activity-title"><div class="cefr-tag">🤝 خُذْ بِيَدِي لِأَزْهَرَ • ${esc(azName(l))}</div><h2>${t}</h2>${G(en)}${progressDots(si,n)}</div>`;
+ const add=(got,of)=>{score+=got;total+=of};
+ const nextStep=()=>{si++;if(si<n)draw();else finish()};
+ const after=(b,fn)=>nextButton(b.querySelector('[data-a]'),'',fn||nextStep);
+ function draw(){clearTimers();const st=steps[si],b=azBoard();
+  /* 1) مَيِّزِ الحَرْفَ وَلَوِّنْهُ ثُمَّ انْطِقْهُ */
+  if(st==='spot'){const k=5;const tiles=shuffle([...Array(k)].map(()=>l).concat(others.slice(0,7).map(x=>x)));const T=tiles.map(x=>(x==='أ'?'أَ':x+'َ'));
+   b.innerHTML=head(`مَيِّزْ حَرْفَ ${azName(l)} وَلَوِّنْهُ يَا بَطَلُ`,`Find and colour every ${l}`)+`<div class="sound-actions"><button class="control-btn" data-h>🔊 ${syl}</button></div><div class="az-spot">${T.map((x,j)=>`<button class="az-cell" data-j="${j}">${x}</button>`).join('')}</div><p class="az-count" data-c>0 / ${k}</p><div class="feedback" data-f></div><div class="after-actions" data-a></div>`;
+   b.querySelector('[data-h]').onclick=()=>speak(syl,.7);later(()=>speak(syl,.7),300);let found=0,miss=0,fin=false;
+   b.querySelectorAll('.az-cell').forEach(c=>c.onclick=()=>{if(fin||c.classList.contains('on'))return;const ok=tiles[+c.dataset.j]===l;speak(T[+c.dataset.j],.8);if(ok){c.classList.add('on');found++;beep(true);b.querySelector('[data-c]').textContent=found+' / '+k;if(found===k){fin=true;add(Math.max(0,1-miss*.25),1);reward(true,miss===0);praise();fbk(b,true,'لَوَّنْتَ كُلَّ الحُرُوفِ! الآنَ انْطِقْهُ: '+syl);plusEmit('say',{host:b.querySelector('[data-a]'),text:syl,kind:'word'});after(b)}}else{miss++;c.classList.add('shake');beep(false);setTimeout(()=>c.classList.remove('shake'),450)}});return}
+  /* 2) أَشْكَالُ الحَرْفِ: بطاقة تعلم ثم سؤال */
+  if(st==='forms'){const fs=azJoins(l)?['start','mid','end','alone']:['alone','end'];const ex={};words.forEach(w=>{const gs=graphemes(w);azLetterIn(w,l).forEach(j=>{const f=azFormOf(gs,j);if(!ex[f])ex[f]=w})});
+   const askF=shuffle(fs)[0];const opts=shuffle(fs.map(f=>azGlyph(l,f)));const ans=opts.indexOf(azGlyph(l,askF));
+   b.innerHTML=head(`حَرْفُ ${azName(l)} بِأَشْكَالِهِ المُخْتَلِفَةِ`,'The letter in its different shapes')+`<div class="az-forms">${fs.map(f=>`<div class="az-form"><b>${azGlyph(l,f)}</b><small>${AZ_FORM_NAME[f]}</small>${ex[f]?`<span>${azMark(ex[f],l)}</span>`:''}</div>`).join('')}</div><p class="prompt-ar">أَيُّ شَكْلٍ يَكُونُ فِي <b>${AZ_FORM_NAME[askF]}</b>؟</p><div data-o></div><div class="feedback" data-f></div><div class="after-actions" data-a></div>`;
+   b.querySelectorAll('.az-form').forEach(x=>x.onclick=()=>{const w=x.querySelector('span');speak(w?w.textContent:syl,.75)});
+   const btns=renderOptions(b.querySelector('[data-o]'),opts,{withAudio:false,tl:false,onPick:idx=>{const ok=idx===ans;lockAndMark(btns,idx,ans,true);beep(ok);reward(ok);add(ok?1:0,1);fbk(b,ok);after(b)}});return}
+  /* 3) اكْتُبِ الحَرْفَ بِشَكْلِهِ الصَّحِيحِ فِي الكَلِمَةِ (3 كلمات) */
+  if(st==='fill'){let q=0;const list=words.filter(w=>azLetterIn(w,l).length).slice(0,3);if(!list.length)return nextStep();
+   const one=()=>{const w=list[q],gs=graphemes(w),j=azLetterIn(w,l)[0],f=azFormOf(gs,j),mark=gs[j].replace(/[^ً-ْ]/g,'')||'َ';const fs=[...new Set((azJoins(l)?['start','mid','end','alone']:['alone','end']).map(x=>azGlyph(l,x,mark)))];const opts=shuffle(fs).slice(0,3);const right=azGlyph(l,f,mark);if(!opts.includes(right))opts[0]=right;const o2=shuffle(opts);const ans=o2.indexOf(right);
+    const blank=gs.map((g,k)=>k===j?'<span class="az-blank">…</span>':esc(g)).join('');
+    b.innerHTML=head(`اكْتُبْ حَرْفَ (${syl}) بِشَكْلِهِ الصَّحِيحِ فِي الكَلِمَةِ`,'Write the letter in its right shape')+`<div class="activity-target small"><span class="ar-text az-word" data-w>${blank}</span></div><div class="sound-actions"><button class="control-btn" data-h>🔊 الكلمة</button></div><div data-o></div><div class="feedback" data-f></div><div class="after-actions" data-a></div>`;
+    b.querySelector('[data-h]').onclick=()=>speak(w,.7);later(()=>speak(w,.7),300);
+    const btns=renderOptions(b.querySelector('[data-o]'),o2,{withAudio:false,tl:false,onPick:idx=>{const ok=idx===ans;lockAndMark(btns,idx,ans,true);beep(ok);reward(ok);add(ok?1:0,1);b.querySelector('[data-w]').innerHTML=azMark(w,l);fbk(b,ok);later(()=>speak(w,.7),300);after(b,()=>{q++;if(q<list.length)one();else nextStep()})}})};one();return}
+  /* 4) ضَعْ دَائِرَةً حَوْلَ الحَرْفِ وَاقْرَأِ الكَلِمَاتِ */
+  if(st==='circle'){const list=words.slice(0,4);let need=0;
+   b.innerHTML=head(`ضَعْ دَائِرَةً حَوْلَ حَرْفِ ${azName(l)} يَا بَطَلُ`,`Circle the letter ${l} and read the words`)+`<div class="az-words">${list.map((w,wi)=>{const gs=graphemes(w);const hit=azLetterIn(w,l);need+=hit.length;return`<div class="az-wcard" data-wi="${wi}"><div class="az-wtiles" dir="rtl">${gs.map((g,j)=>`<button class="az-t" data-hit="${hit.includes(j)?1:0}">${esc(g)}</button>`).join('')}</div><button class="control-btn az-say" data-w="${esc(w)}">🔊</button></div>`}).join('')}</div><p class="az-count" data-c>0 / ${need}</p><div class="feedback" data-f></div><div class="after-actions" data-a></div>`;
+   let got=0,miss=0,fin=false;b.querySelectorAll('.az-say').forEach(x=>x.onclick=()=>speak(x.dataset.w,.7));
+   b.querySelectorAll('.az-t').forEach(t=>t.onclick=()=>{if(fin||t.classList.contains('on'))return;if(t.dataset.hit==='1'){t.classList.add('on');got++;beep(true);speak(t.textContent,.8);b.querySelector('[data-c]').textContent=got+' / '+need;if(got===need){fin=true;add(Math.max(0,1-miss*.2),1);reward(true,miss===0);praise();fbk(b,true,'أَحْسَنْتَ! الآنَ اقْرَأْ كَلِمَةً مِنَ الكَلِمَاتِ.');plusEmit('say',{host:b.querySelector('[data-a]'),text:list[0],kind:'word'});after(b)}}else{miss++;t.classList.add('shake');beep(false);setTimeout(()=>t.classList.remove('shake'),450)}});return}
+  /* 5) اكْتُبِ الحَرْفَ النَّاقِصَ (وعي صوتي) */
+  if(st==='missing'){let q=0;const list=shuffle(words).slice(0,3);
+   const one=()=>{const w=list[q],gs=graphemes(w),j=azLetterIn(w,l)[0];if(j==null){q++;return q<list.length?one():nextStep()}const mark=gs[j].replace(/[^ً-ْ]/g,'');const right=(l==='أ'?'أ':l)+mark;const opts=shuffle([right,...others.slice(q,q+2).map(x=>x+mark)]);const ans=opts.indexOf(right);
+    b.innerHTML=head('اكْتُبِ الحَرْفَ النَّاقِصَ','Write the missing letter')+`<p class="prompt-ar">اسْمَعِ الكَلِمَةَ، ثُمَّ اخْتَرِ الحَرْفَ النَّاقِصَ.</p><div class="activity-target small"><span class="ar-text az-word" data-w>${gs.map((g,k)=>k===j?'<span class="az-blank">…</span>':esc(g)).join('')}</span></div><div class="sound-actions"><button class="control-btn" data-h>🔊 الكلمة</button></div><div data-o></div><div class="feedback" data-f></div><div class="after-actions" data-a></div>`;
+    b.querySelector('[data-h]').onclick=()=>speak(w,.7);later(()=>speak(w,.7),300);
+    const btns=renderOptions(b.querySelector('[data-o]'),opts,{withAudio:true,tl:false,onPick:idx=>{const ok=idx===ans;lockAndMark(btns,idx,ans,true);beep(ok);reward(ok);add(ok?1:0,1);b.querySelector('[data-w]').innerHTML=azMark(w,l);fbk(b,ok);after(b,()=>{q++;if(q<list.length)one();else nextStep()})}})};one();return}
+  /* 6) اكْتَشِفْ كَلِمَاتِنَا السِّرِّيَّةَ فِي اللُّعْبَةِ */
+  if(st==='secret'){const list=words.filter(w=>graphemes(w).length===3).slice(0,4);if(list.length<2)return nextStep();const fill=shuffle([...others.slice(0,6),l]).map(x=>(x==='أ'?'أَ':x+'َ'));let fi=0;
+   const rows=list.map(w=>{const gs=graphemes(w);const off=Math.floor(Math.random()*2);const row=[];for(let c=0;c<4;c++){row.push(c>=off&&c<off+3?{t:gs[c-off],w}:{t:fill[(fi++)%fill.length],w:null})}return row});
+   b.innerHTML=head('اكْتَشِفْ كَلِمَاتِنَا السِّرِّيَّةَ فِي اللُّعْبَةِ','Find our secret words')+`<p class="az-list">(${list.map(w=>`<span data-sw="${esc(w)}">${esc(w)}</span>`).join(' - ')})</p><p class="prompt-ar small">المِسْ حُرُوفَ الكَلِمَةِ بِالتَّرْتِيبِ مِنَ اليَمِينِ.</p><div class="az-secret" dir="rtl">${rows.map((r,ri)=>r.map((c,ci)=>`<button class="az-cell" data-r="${ri}" data-c="${ci}">${esc(c.t)}</button>`).join('')).join('')}</div><div class="feedback" data-f></div><div class="after-actions" data-a></div>`;
+   let picked=[],solved=0,miss=0;const cells=[...b.querySelectorAll('.az-secret .az-cell')];
+   cells.forEach(x=>x.onclick=()=>{if(x.classList.contains('found'))return;const r=+x.dataset.r,c=+x.dataset.c;if(picked.length&&(picked[0].r!==r||c!==picked[picked.length-1].c+1)){picked.forEach(p=>p.el.classList.remove('sel'));picked=[]}
+    x.classList.add('sel');picked.push({r,c,el:x});speak(rows[r][c].t,.85);const word=picked.map(p=>rows[p.r][p.c].t).join('');const target=list[r];
+    if(word===target&&picked.every(p=>rows[p.r][p.c].w===target)){picked.forEach(p=>{p.el.classList.remove('sel');p.el.classList.add('found')});picked=[];solved++;beep(true);speak(target,.7);const tag=b.querySelector(`[data-sw="${target}"]`);if(tag)tag.classList.add('found');
+     if(solved===list.length){add(Math.max(0,1-miss*.15),1);reward(true,miss===0);praise();fbk(b,true,'وَجَدْتَ كُلَّ الكَلِمَاتِ السِّرِّيَّةِ! 🔎');after(b)}}
+    else if(picked.length>=3||!target.startsWith(word)){miss++;beep(false);const ps=picked;setTimeout(()=>ps.forEach(p=>{if(!p.el.classList.contains('found'))p.el.classList.remove('sel')}),350);picked=[]}});return}
+  /* 7) تَحَدِّي القِرَاءَةِ */
+  if(st==='read'){const ph=[];const ws=shuffle(words);for(let k=0;k+1<ws.length&&ph.length<3;k+=2)ph.push(ws[k]+' '+ws[k+1]);let q=0,pts=0;
+   const one=()=>{const t=ph[q];b.innerHTML=head('تَحَدِّي القِرَاءَةِ','Reading challenge')+`<p class="prompt-ar">اقْرَأِ الجُمْلَةَ بِصَوْتٍ عَالٍ، ثُمَّ اسْتَمِعْ وَتَحَقَّقْ.</p><div class="activity-target small"><span class="ar-text sentence">${azMark(t,l)}</span></div><div class="sound-actions"><button class="control-btn" data-h>🔊 استمع</button></div><div class="az-rate"><button data-v="1">🤩<small>مُحَاوَلَةٌ مُمْتَازَةٌ</small></button><button data-v=".7">🙂<small>مُحَاوَلَةٌ جَيِّدَةٌ</small></button><button data-v=".4">😐<small>أَحْتَاجُ تَدْرِيبًا</small></button></div><div class="after-actions" data-a></div>`;
+    b.querySelector('[data-h]').onclick=()=>speak(t,.65);plusEmit('say',{host:b.querySelector('[data-a]'),text:t,kind:'sentence'});
+    b.querySelectorAll('.az-rate button').forEach(x=>x.onclick=()=>{b.querySelectorAll('.az-rate button').forEach(y=>{y.disabled=true;y.classList.toggle('sel',y===x)});pts+=+x.dataset.v;beep(true);speak(t,.65);after(b,()=>{q++;if(q<ph.length)one();else{add(pts/ph.length,1);nextStep()}})})};if(!ph.length)return nextStep();one();return}
+  /* 8) أُفَكِّرُ: أَيُّ مَعْلَمٍ بَحْرَيْنِيٍّ فِيهِ الحَرْفُ؟ */
+  if(st==='think'){const has=w=>azBase(w).includes(l==='أ'?'أ':l);const yes=shuffle((AZ.think||[]).filter(has)),no=shuffle((AZ.think||[]).filter(w=>!has(w)));if(!yes.length||no.length<2)return nextStep();
+   const opts=shuffle([yes[0],no[0],no[1]]);const ans=opts.indexOf(yes[0]);
+   b.innerHTML=head('أُفَكِّرُ 🇧🇭','I think')+`<p class="prompt-ar">مِنْ مَعَالِمِ البَحْرَيْنِ: أَيُّهَا فِيهِ حَرْفُ <b>${azName(l)}</b>؟</p><div data-o></div><div class="feedback" data-f></div><div class="after-actions" data-a></div>`;
+   const btns=renderOptions(b.querySelector('[data-o]'),opts,{withAudio:true,tl:false,onPick:idx=>{const ok=idx===ans;lockAndMark(btns,idx,ans,true);beep(ok);reward(ok);add(ok?1:0,1);btns[ans].querySelector('.ar-text').innerHTML=azMark(opts[ans],l);fbk(b,ok);after(b)}});return}
+  /* 9) أَنَا أَسْتَطِيعُ إِعَادَةَ كِتَابَةِ الحَرْفِ */
+  if(st==='trace'){const glyph=l==='أ'?'ا':l;b.innerHTML=head(`أَنَا أَسْتَطِيعُ إِعَادَةَ كِتَابَةِ ${syl}`,'I can write the letter')+`<div data-pad></div><div class="after-actions" data-a></div>`;
+   tracePad(b.querySelector('[data-pad]'),glyph,{onResult:credit=>{add(credit,1);reward(credit>0,credit===1);if(credit>0)praise();after(b)}});return}
+ }
+ function fbk(b,ok,msg){const f=b.querySelector('[data-f]');if(!f)return;f.className='feedback '+(ok?'good':'bad');f.innerHTML=ok?`<b>${msg||praise()[0]}</b>`:'الإِجَابَةُ الصَّحِيحَةُ بِالأَخْضَرِ. 🌱'}
+ function finish(){const pct=Math.round(score/Math.max(1,total)*100);const s=current();
+  const lvl=pct>=90?['⭐⭐⭐','مُمْتَاز، عَمَلٌ مُتْقَنٌ وَإِجَابَاتٌ نَمُوذَجِيَّةٌ.','شُكْرًا لَكَ!']:pct>=70?['⭐⭐','عَمَلٌ جَيِّدٌ، لَكِنْ يَحْتَاجُ إِلَى دِقَّةٍ.','بُورِكَتْ جُهُودُكَ.']:pct>=50?['⭐','تُوجَدُ أَخْطَاءٌ.','سَعِدْتُ بِمُحَاوَلَاتِكَ.']:['🌱','نَاقِصٌ، نَتَدَرَّبُ مَعًا مَرَّةً أُخْرَى.','رَاجِعْ دَرْسَكَ وَتَدَرَّبْ أَكْثَرَ.'];
+  if(s){s.azhar=s.azhar||{};const r=s.azhar[l]||{best:0,tries:0};r.tries++;r.last=pct;r.best=Math.max(r.best,pct);r.date=today();s.azhar[l]=r;if(pct>=70)s.points+=15;persist();refreshHud()}
+  if(pct>=70){confetti();beep(true)}plusEmit('mission',{pass:pct>=70,stars:pct>=90?3:pct>=70?2:1,score:pct,stationDone:false});
+  const b=azBoard();b.innerHTML=`<div class="stage-finish az-finish"><div class="trophy">${pct>=70?'🏅':'🌱'}</div><h2>حَرْفُ ${esc(azName(l))}: ${pct}%</h2><div class="az-eval"><div><b>الوَصْفُ وَالتَّقْدِيرُ</b><span>${lvl[0]} ${lvl[1]}</span></div><div><b>التَّعْزِيزُ</b><span>${lvl[2]}</span></div></div><div class="az-opinion"><b>رَأْيُكَ فِي النَّشَاطِ يُهِمُّنِي</b><div>${['🤩','🙂','😕'].map(e=>`<button data-e="${e}">${e}</button>`).join('')}</div></div><div class="form-actions center-row"><button class="big-btn ghost" data-r>🔁 مرة أخرى</button><button class="big-btn gold" data-l>🔤 حرف آخر</button><button class="big-btn primary" data-b>رجوع ▶</button></div></div>`;
+  b.querySelectorAll('[data-e]').forEach(x=>x.onclick=()=>{b.querySelectorAll('[data-e]').forEach(y=>y.classList.toggle('sel',y===x));if(s){s.azhar[l].feel=x.dataset.e;persist()}flash('شُكْرًا لِرَأْيِكَ!')});
+  b.querySelector('[data-r]').onclick=()=>azRun(l);b.querySelector('[data-l]').onclick=()=>openAzhar(azReturn);b.querySelector('[data-b]').onclick=azBack}
+ draw()}
+/* الكلمة مع تلوين الحرف المطلوب */
+function azMark(t,l){return t.split(' ').map(w=>{const gs=graphemes(w);const hit=azLetterIn(w,l);return gs.map((g,j)=>hit.includes(j)?`<mark class="tl-hit">${esc(g)}</mark>`:esc(g)).join('')}).join(' ')}
+/* ربط: زر في شريط الخريطة + في مختبر الحروف + في تقرير الطالب */
+navTab=(orig=>function(tab){if(tab==='azhar')return openAzhar('worldScreen');return orig(tab)})(navTab);
+openLab=(orig=>function(from){orig(from);const r=document.querySelector('#labContent .tl-lab-row');if(r&&!r.querySelector('#azLabBtn')){const x=document.createElement('button');x.className='big-btn gold';x.id='azLabBtn';x.textContent='🤝 خذ بيدي لأزهر';x.onclick=()=>openAzhar('labScreen');r.appendChild(x)}})(openLab);
+showStudentReport=(orig=>function(id){orig.apply(this,arguments);const s=db.students.find(x=>x.id===id);const card=$('overlayCard');if(!s||!card)return;const res=Object.entries(s.azhar||{});
+ const box=document.createElement('div');box.className='tl-report';box.innerHTML=`<h3>🤝 خذ بيدي لأزهر</h3>${res.length?`<div class="tl-res">${res.map(([l,r])=>`<span class="${r.best>=70?'ok':'no'}"><b>${l}</b>${r.best}%<small>${r.tries} محاولة ${r.feel||''}</small></span>`).join('')}</div>`:'<p class="muted">لم يبدأ بعد.</p>'}`;
+ const actions=card.querySelector('.form-actions:last-of-type');if(actions)actions.before(box);else card.appendChild(box)})(showStudentReport);
+
 /* لأغراض الاختبار الآلي فقط */
-window.__maamoon={get db(){return db},get settings(){return settings},speak,stopAudio,recordMic,refreshHud,isSpeaking:()=>!!(aiTtsSource||aiTtsAbort||(currentAudio&&!currentAudio.paused&&!currentAudio.ended)||('speechSynthesis'in window&&speechSynthesis.speaking)),get cloud(){return cloud},runSync,CLOUD,persist,recordMission,missionAccess,nextMi,MISSIONS,minDays,openImport,askPinChoice,openWorkshop,openLetterCheck,knownCount,letterStatus,needsLetterCheck,tracePad,current,STAGES,launchStage,finishStage,startDiagnostic,prepareWorld,showProfile,openLab,showAdmin,translit,tierFor};
+window.__maamoon={openAzhar,azRun,tlRun,tlWords,tlSyl,tlOpenTeacherMode,get db(){return db},get settings(){return settings},speak,stopAudio,recordMic,refreshHud,isSpeaking:()=>!!(aiTtsSource||aiTtsAbort||(currentAudio&&!currentAudio.paused&&!currentAudio.ended)||('speechSynthesis'in window&&speechSynthesis.speaking)),get cloud(){return cloud},runSync,CLOUD,persist,recordMission,missionAccess,nextMi,MISSIONS,minDays,openImport,askPinChoice,openWorkshop,openLetterCheck,knownCount,letterStatus,needsLetterCheck,tracePad,current,STAGES,launchStage,finishStage,startDiagnostic,prepareWorld,showProfile,openLab,showAdmin,translit,tierFor};
 })();

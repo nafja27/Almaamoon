@@ -78,7 +78,7 @@ body{background:linear-gradient(180deg,#eef9ff 0%,#f9fdff 100%)}
 <link rel="stylesheet" href="assets/v36_13.css?v=3613">
 <link rel="stylesheet" href="assets/v36_14.css?v=37">
 <link rel="stylesheet" href="assets/v37_fx.css?v=37">
-<link rel="stylesheet" href="assets/plus.css?v=3815">
+<link rel="stylesheet" href="assets/plus.css?v=40">
 </head>
 <body>
 <div id="app" class="app">
@@ -119,7 +119,7 @@ body{background:linear-gradient(180deg,#eef9ff 0%,#f9fdff 100%)}
         </div>
       </section>
     </main>
-    <footer class="h38-credit"><span>إعداد القائم بأعمال مدير مساعد: <b>أ. نافجة الحامد</b></span><i>✦</i><span>مديرة المدرسة: <b>أ. عايدة الدوسري</b></span><em dir="ltr">V38.15</em></footer>
+    <footer class="h38-credit"><span>إعداد القائم بأعمال مدير مساعد: <b>أ. نافجة الحامد</b></span><i>✦</i><span>مديرة المدرسة: <b>أ. عايدة الدوسري</b></span><em dir="ltr">V40</em></footer>
   </section>
   <section id="diagnosticScreen" class="screen diagnostic-screen">
     <div class="top-hud simple">
@@ -172,7 +172,7 @@ body{background:linear-gradient(180deg,#eef9ff 0%,#f9fdff 100%)}
         <div class="mission-zone" id="missionZone">عالم الحروف</div><h3 id="missionPlace">قلعة البحرين</h3><strong id="missionSkill">الحروف والحركات</strong><p id="missionDesc">استمع إلى الحرف، ميّز صوته، ثم اختره.</p><div id="missionCanDo" class="can-do">🎯 أستطيع أن أميّز الحروف والحركات الأساسية.</div><div class="mission-bottom"><span id="missionReward">🔑 مفتاح الحروف</span><button id="enterStageBtn" class="big-btn primary">ابدأ المهمة ▶</button></div>
       </aside>
     </div>
-    <nav class="game-nav"><button class="active" data-tab="world">🗺️<span>الخريطة</span></button><button data-tab="profile">👤<span>تقدمي</span></button><button data-tab="practice">🧠<span>تدريب ذكي</span></button><button data-tab="lab"><span class="ab-icon" aria-hidden="true">أ ب ت</span><span>مختبر الحروف</span></button><button data-tab="write">✍️<span>الكتابة</span></button><button data-tab="admin">📊<span>التقارير</span></button></nav>
+    <nav class="game-nav"><button class="active" data-tab="world">🗺️<span>الخريطة</span></button><button data-tab="profile">👤<span>تقدمي</span></button><button data-tab="practice">🧠<span>تدريب ذكي</span></button><button data-tab="lab"><span class="ab-icon" aria-hidden="true">أ ب ت</span><span>مختبر الحروف</span></button><button data-tab="write">✍️<span>الكتابة</span></button><button data-tab="azhar">🤝<span>خذ بيدي</span></button><button data-tab="admin">📊<span>التقارير</span></button></nav>
   </section>
 
   <section id="stageScreen" class="screen stage-screen">
@@ -189,12 +189,16 @@ body{background:linear-gradient(180deg,#eef9ff 0%,#f9fdff 100%)}
   <section id="adminScreen" class="screen admin-screen"><div class="top-hud simple"><button class="round-btn" data-nav="start" aria-label="رجوع">→</button><div class="hud-title">📊 لوحة الإدارة والمتابعة</div><button id="adminLogoutBtn" class="round-btn" aria-label="تسجيل الخروج" title="تسجيل الخروج — Log out">⇤</button></div><div id="adminContent" class="admin-content"></div></section>
   <section id="labScreen" class="screen lab-screen"><div class="top-hud simple"><button id="labBackBtn" class="round-btn" aria-label="رجوع">→</button><div class="hud-title"><span class="ab-icon" aria-hidden="true">أ ب ت</span> مختبر الحروف <small class="gloss-inline" dir="ltr">Letter Lab</small></div><div class="hud-stats"><button class="toggle-btn" data-toggle="help" aria-label="English help">EN</button></div></div><div id="labContent" class="lab-content"></div></section>
   <section id="writeScreen" class="screen write-screen"><div class="top-hud simple"><button id="writeBackBtn" class="round-btn" aria-label="العودة للخريطة">→</button><div class="hud-title">✍️ ورشة الكتابة <small class="gloss-inline" dir="ltr">Writing</small></div><div class="hud-stats"><span class="hud-pill combo" hidden>🔥 <b>0</b></span><span class="hud-pill">⭐ <b id="writePoints">0</b></span><button class="toggle-btn" data-toggle="help" aria-label="English help">EN</button><button class="toggle-btn" data-toggle="tl" aria-label="Sound spelling">Aa</button></div></div><main id="writeBoard" class="activity-board write-board"></main></section>
+  <section id="tlabScreen" class="screen write-screen tlab-screen"><div class="top-hud simple"><button id="tlabBackBtn" class="round-btn" aria-label="رجوع">→</button><div class="hud-title" id="tlabTitle">🧑‍🏫 مختبر المعلمة</div><div class="hud-stats"><span class="hud-pill">⭐ <b id="tlabPoints">0</b></span><button class="toggle-btn" data-toggle="help" aria-label="English help">EN</button></div></div><main id="tlabBoard" class="activity-board write-board"></main></section>
+  <section id="azharScreen" class="screen write-screen azhar-screen"><div class="top-hud simple"><button id="azharBackBtn" class="round-btn" aria-label="رجوع">→</button><div class="hud-title" id="azharTitle">🤝 خذ بيدي لأزهر</div><div class="hud-stats"><span class="hud-pill">⭐ <b id="azharPoints">0</b></span><button class="toggle-btn" data-toggle="help" aria-label="English help">EN</button></div></div><main id="azharBoard" class="activity-board write-board"></main></section>
   <section id="checkScreen" class="screen write-screen"><div class="top-hud simple"><button id="checkBackBtn" class="round-btn" aria-label="العودة للخريطة">→</button><div class="hud-title"><span class="ab-icon" aria-hidden="true">أ ب ت</span> فحص الحروف <small class="gloss-inline" dir="ltr">Letter check</small></div><div class="hud-stats"><span class="hud-pill">⭐ <b id="checkPoints">0</b></span><button class="toggle-btn" data-toggle="help" aria-label="English help">EN</button><button class="toggle-btn" data-toggle="tl" aria-label="Sound spelling">Aa</button></div></div><main id="checkBoard" class="activity-board write-board"></main></section>
   <section id="overlay" class="overlay hidden" role="dialog" aria-modal="true"><div id="overlayCard" class="overlay-card"></div></section>
 </div>
 <script src="assets/config.js?v=365"></script>
 <script src="assets/content.js?v=365"></script>
-<script src="assets/game.js?v=3813"></script>
+<script src="assets/teacher-words.js?v=39"></script>
+<script src="assets/azhar-data.js?v=40"></script>
+<script src="assets/game.js?v=40"></script>
 <script src="assets/mamoun-buddy.js?v=389"></script>
 <script src="assets/game-fx.js?v=37"></script>
 <script src="assets/plus.js?v=385"></script>

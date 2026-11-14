@@ -196,3 +196,79 @@ body.plus-talking .screen.active .plus-mascot{animation:plusTalk .32s ease-in-ou
 #startScreen .h38-top{background:#fff;border-radius:18px;padding:6px 8px 6px 16px;box-shadow:0 8px 20px rgba(0,30,60,.25)}
 #startScreen .h38-brand{flex:1;background:none;box-shadow:none;padding:0}
 #startScreen .h38-icon{background:#eef6fc;border:1px solid #cfe2f1}
+
+/* ================= V39: مختبر المعلمة ================= */
+#overlayCard.tl-wide{width:min(760px,96vw);max-width:760px}
+.tl-picker h2{margin:0 0 4px}
+.tl-letters{display:grid;grid-template-columns:repeat(10,1fr);gap:5px;margin:8px 0}
+.tl-l{font-family:var(--learn);font-size:24px;font-weight:700;height:44px;border-radius:12px;border:2px solid #d6e6f2;background:#fff;color:#0b3a66;cursor:pointer}
+.tl-l.sel{background:#0b3a66;color:#fff;border-color:#0b3a66}
+.tl-marks{display:grid;grid-template-columns:repeat(5,1fr);gap:6px;margin:8px 0}
+.tl-m{display:flex;flex-direction:column;align-items:center;gap:2px;padding:6px 4px;border-radius:12px;border:2px solid #eadfc7;background:#fffaf0;cursor:pointer}
+.tl-m b{font-family:var(--learn);font-size:26px;line-height:1.5;color:#0b3a66}
+.tl-m small{font-size:11px;color:#8c6a1e;font-weight:800}
+.tl-m.sel{border-color:#d69e17;background:#fff0b8;box-shadow:0 0 0 3px rgba(243,201,82,.45)}
+.tl-preview{display:flex;align-items:center;gap:14px;background:#eef8fd;border-radius:14px;padding:8px 12px;margin:6px 0}
+.tl-preview .tl-big{font-size:52px}
+.tl-preview b{display:block;color:#0b3a66}.tl-preview small{display:block;color:#47637b;font-size:13px;line-height:1.6;font-family:var(--learn)}
+.tl-big{font-family:var(--learn);font-weight:700;color:#0b3a66;line-height:1.4}
+.tl-assign{display:flex;align-items:center;gap:8px;margin:6px 0}.tl-assign select{flex:1;padding:8px;border-radius:10px;border:1px solid #cfdfe9;font-size:15px}
+@media (max-width:640px){.tl-letters{grid-template-columns:repeat(7,1fr)}.tl-marks{grid-template-columns:repeat(2,1fr)}}
+/* الجلسة */
+.tl-intro{text-align:center;display:flex;flex-direction:column;align-items:center;gap:8px}
+.tl-hero{font-family:var(--learn);font-size:110px;line-height:1.3;color:#0b3a66;background:radial-gradient(circle,#fff 0 55%,#fff3c4 100%);border:5px solid #f3c952;border-radius:50%;width:190px;height:190px;display:grid;place-items:center;box-shadow:0 10px 24px rgba(0,40,80,.18)}
+.tl-examples{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;max-width:720px}
+.tl-ex{display:flex;align-items:center;gap:6px;background:#fff;border:2px solid #d6e6f2;border-radius:14px;padding:6px 12px;cursor:pointer}
+.tl-ex span{font-size:26px}.tl-ex b{font-family:var(--learn);font-size:26px;color:#0b3a66;font-weight:700}
+mark.tl-hit{background:#ffe27a;color:#a3360b;border-radius:8px;padding:0 2px}
+.tl-word-tiles{display:flex;justify-content:center;gap:8px;flex-wrap:wrap;margin:14px 0}
+.tl-tile{font-family:var(--learn);font-size:46px;min-width:74px;height:86px;border-radius:18px;border:3px solid #cfe3ea;background:#fff;color:#0b3a66;cursor:pointer;box-shadow:0 6px 0 #d6e8ed}
+.tl-tile.good{background:#e9f9ef;border-color:#2dbb5f;box-shadow:0 6px 0 #1f9a4c}.tl-tile.bad{background:#ffeceb;border-color:#e46b6b;animation:mWiggle .5s}
+.tl-mark-box{display:flex;justify-content:center;margin:8px 0}.tl-mark-box .tl-big{font-size:96px;min-width:150px;text-align:center;background:#fff;border:3px dashed #9cc7e0;border-radius:24px}
+/* واجب المعلمة على الخريطة */
+.tl-task-chip{display:flex;flex-direction:column;align-items:center;width:100%;margin:0 0 8px;padding:8px;border-radius:16px;border:2px solid #e9b93a;background:linear-gradient(180deg,#fff8dc,#ffe9a6);cursor:pointer;animation:tlPulse 2s ease-in-out infinite}
+.tl-task-chip span{font-size:12px;font-weight:900;color:#8a5a00}.tl-task-chip b{font-family:var(--learn);font-size:34px;color:#0b3a66;line-height:1.4}.tl-task-chip small{font-size:11px;color:#6b5320}
+@keyframes tlPulse{0%,100%{box-shadow:0 0 0 0 rgba(233,185,58,.5)}50%{box-shadow:0 0 0 8px rgba(233,185,58,0)}}
+.tl-lab-row{gap:8px;flex-wrap:wrap;margin-bottom:8px}
+.tl-admin .tl-cell{font-family:var(--learn);font-size:26px;color:#0b3a66}
+.tl-report{margin-top:10px;padding:10px;border-radius:14px;background:#f6fbff;border:1px solid #d6e6f2}
+.tl-report h3{margin:0 0 6px}.tl-res{display:flex;flex-wrap:wrap;gap:6px}
+.tl-res span{display:flex;flex-direction:column;align-items:center;min-width:64px;padding:4px 8px;border-radius:12px;background:#fff;border:2px solid #d6e6f2;font-weight:800}
+.tl-res span b{font-family:var(--learn);font-size:24px}.tl-res span small{font-size:10px;color:#6b8296}
+.tl-res span.ok{border-color:#2dbb5f}.tl-res span.no{border-color:#e9b93a}
+#overlayCard.tl-wide{max-height:92vh;overflow-y:auto}.tl-picker .form-actions{position:sticky;bottom:-2px;background:inherit;padding-top:8px}
+
+/* ================= V40: خذ بيدي لأزهر ================= */
+.az-home{display:flex;flex-direction:column;gap:10px}
+.az-banner{text-align:center;background:linear-gradient(180deg,#eaf7ee,#d5f0de);border:2px solid #7fcf98;border-radius:18px;padding:10px}
+.az-banner b{display:block;font-size:24px;color:#14653a;font-family:var(--learn)}.az-banner span{color:#2c5b40;font-family:var(--learn)}
+.az-gtitle{margin:6px 0 0;color:#0b3a66;font-family:var(--learn)}
+.az-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(74px,1fr));gap:8px}
+.az-letter{display:flex;flex-direction:column;align-items:center;padding:6px;border-radius:16px;border:2px solid #d6e6f2;background:#fff;cursor:pointer;box-shadow:0 4px 0 #d6e8ed}
+.az-letter b{font-family:var(--learn);font-size:38px;line-height:1.4;color:#0b3a66}.az-letter small{font-size:11px;color:#c58a00;letter-spacing:1px}
+.az-letter.done{border-color:#2dbb5f;background:#effbf2}
+.az-spot{display:grid;grid-template-columns:repeat(4,minmax(64px,90px));gap:8px;justify-content:center;margin:10px 0}
+.az-secret{display:grid;grid-template-columns:repeat(4,minmax(64px,90px));gap:6px;justify-content:center;margin:10px 0}
+.az-cell{font-family:var(--learn);font-size:40px;height:76px;border-radius:16px;border:3px solid #cfe3ea;background:#fff;color:#0b3a66;cursor:pointer;box-shadow:0 5px 0 #d6e8ed;line-height:1.3}
+.az-cell.on{background:#ffe27a;border-color:#e2a100;box-shadow:0 5px 0 #c58a00}
+.az-cell.sel{background:#dff1ff;border-color:#19a7d8}
+.az-cell.found{background:#c9f2d6;border-color:#2dbb5f;box-shadow:0 5px 0 #1f9a4c}
+.az-count{text-align:center;font-weight:900;color:#0f8a7a;font-size:20px;margin:0}
+.az-forms{display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:8px;margin:8px 0}
+.az-form{display:flex;flex-direction:column;align-items:center;gap:2px;padding:8px;border-radius:16px;background:#fff;border:2px solid #eadfc7;cursor:pointer}
+.az-form b{font-family:var(--learn);font-size:44px;line-height:1.4;color:#0b3a66}.az-form small{color:#8c6a1e;font-weight:800;font-family:var(--learn)}.az-form span{font-family:var(--learn);font-size:22px;color:#35506a}
+.az-blank{display:inline-block;min-width:1.2em;border-bottom:4px dashed #e2a100;color:#e2a100}
+.az-words{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:10px;margin:8px 0}
+.az-wcard{display:flex;align-items:center;justify-content:center;gap:6px;background:#fff;border:2px solid #d6e6f2;border-radius:16px;padding:8px}
+.az-wtiles{display:flex;gap:4px}
+.az-t{font-family:var(--learn);font-size:36px;min-width:52px;height:64px;border-radius:50%;border:3px solid transparent;background:#f4f9fc;color:#0b3a66;cursor:pointer;line-height:1.3}
+.az-t.on{border-color:#e46b2b;background:#fff3e6;box-shadow:0 0 0 3px rgba(228,107,43,.25)}
+.az-list{text-align:center;font-family:var(--learn);font-size:22px;color:#0b3a66;margin:4px 0}.az-list span.found{color:#1f9a4c;text-decoration:line-through}
+.az-rate{display:flex;justify-content:center;gap:10px;margin:10px 0}
+.az-rate button{display:flex;flex-direction:column;align-items:center;font-size:40px;padding:6px 12px;border-radius:16px;border:2px solid #d6e6f2;background:#fff;cursor:pointer}
+.az-rate button small{font-size:12px;font-family:var(--learn);color:#35506a}.az-rate button.sel{border-color:#2dbb5f;background:#effbf2}
+.az-eval{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:8px auto;max-width:560px}
+.az-eval div{background:#fff;border:2px solid #eadfc7;border-radius:14px;padding:8px}.az-eval b{display:block;color:#0b3a66}.az-eval span{font-family:var(--learn);color:#35506a}
+.az-opinion{margin:8px auto;text-align:center}.az-opinion div{display:flex;justify-content:center;gap:10px;margin-top:4px}
+.az-opinion button{font-size:40px;border:2px solid #d6e6f2;border-radius:50%;width:64px;height:64px;background:#fff;cursor:pointer}.az-opinion button.sel{border-color:#2dbb5f;transform:scale(1.12)}
+@media (max-width:640px){.az-spot,.az-secret{grid-template-columns:repeat(4,1fr)}.az-cell{font-size:30px;height:60px}.az-eval{grid-template-columns:1fr}}

@@ -3,7 +3,7 @@
 const API='/api/mamoun-realtime';
 const STATUS_API='/api/ai-status';
 const MAX_MS=5*60*1000;
-let pc=null,dc=null,stream=null,audioEl=null,sessionTimer=null,connected=false,muted=false,lastAssistant='',lastUser='';
+let connectedAt=0,pc=null,dc=null,stream=null,audioEl=null,sessionTimer=null,connected=false,muted=false,lastAssistant='',lastUser='';
 
 function el(tag,cls,html){const x=document.createElement(tag);if(cls)x.className=cls;if(html!=null)x.innerHTML=html;return x}
 function safe(t){return String(t??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
@@ -28,7 +28,7 @@ function contextText(){
  else bits.push('الطالب في الصفحة الرئيسية لمغامرة المأمون.');
  return bits.join(' ');
 }
-function baseInstruction(){return `أنت شخصية "المأمون"، رفيق تعليمي لطفل يتعلم العربية كلغة ثانية داخل منصة مغامرة المأمون. تحدث بالعربية الفصحى المبسطة فقط. لا تستخدم أي لهجة عامية مطلقًا. قل "أهلًا يا بطل" ولا تقل "هلا". استخدم جملًا قصيرة وواضحة ومشجعة، غالبًا جملة أو جملتين فقط. لا تسأل الطفل عن اسمه أو عمره أو مدرسته أو موقعه أو أي معلومة شخصية. لا تناقش موضوعات خارج تعلم العربية؛ أعد الحوار بلطف إلى الحروف والكلمات والجمل والقراءة. افهم الإنجليزية إذا احتاج الطفل إليها، لكن اجعل ردك الأساسي بالعربية، ويمكنك إعطاء كلمة إنجليزية قصيرة جدًا عند الضرورة. عند الخطأ قل مثلًا: "أحسنت المحاولة. استمع مرة أخرى ثم حاول." عند النجاح قل مثلًا: "أحسنت! نطقك واضح." استخدم نبرة دافئة ومرحة وبطيئة نسبيًا تناسب طفلًا في المرحلة الابتدائية. السياق الحالي في المنصة: ${contextText()}`}
+function baseInstruction(){return `أنت شخصية "المأمون"، رفيق تعليمي لطفل يتعلم العربية كلغة ثانية داخل منصة مغامرة المأمون. تحدث بالعربية الفصحى المبسطة فقط. لا تستخدم أي لهجة عامية مطلقًا. رحّب بالطفل مرة واحدة فقط في أول الجلسة بقول "أهلًا يا بطل"، وبعدها لا تكرر أي تحية أبدًا (لا "أهلًا" ولا "يا بطل" في بداية ردودك)، بل ادخل في الرد مباشرة. لا تقل "هلا". استخدم جملًا قصيرة وواضحة ومشجعة، غالبًا جملة أو جملتين فقط. لا تسأل الطفل عن اسمه أو عمره أو مدرسته أو موقعه أو أي معلومة شخصية. لا تناقش موضوعات خارج تعلم العربية؛ أعد الحوار بلطف إلى الحروف والكلمات والجمل والقراءة. افهم الإنجليزية إذا احتاج الطفل إليها، لكن اجعل ردك الأساسي بالعربية، ويمكنك إعطاء كلمة إنجليزية قصيرة جدًا عند الضرورة. عند الخطأ قل مثلًا: "أحسنت المحاولة. استمع مرة أخرى ثم حاول." عند النجاح قل مثلًا: "أحسنت! نطقك واضح." استخدم نبرة دافئة ومرحة وبطيئة نسبيًا تناسب طفلًا في المرحلة الابتدائية. السياق الحالي في المنصة: ${contextText()}`}
 
 const launcher=el('button','mamoun-buddy-launcher','<span class="mb-badge" id="mbAiBadge">AI</span><span class="mb-label" id="mbLauncherLabel">تحدّث مع المأمون AI</span><img src="assets/mascot.webp?v=365" alt="المأمون">');
 launcher.type='button';launcher.setAttribute('aria-label','تحدّث مع المأمون');
@@ -48,40 +48,69 @@ backdrop.innerHTML=`<section class="mamoun-buddy-panel" role="dialog" aria-modal
 document.body.append(launcher,backdrop);
 const $=id=>document.getElementById(id),avatar=$('mbAvatar'),status=$('mbSceneStatus'),transcript=$('mbTranscript'),start=$('mbStart'),mute=$('mbMute'),contextBtn=$('mbContext'),audio=$('mbAudio');audioEl=audio;
 const aiBadge=$('mbAiBadge'),launcherLabel=$('mbLauncherLabel');
+/* V38: نضبط نسبة الصورة ومكان الفم حسب الصورة المعروضة فعلًا */
+(function(){const img=$('mbBuddyImage');if(!img)return;const fit=()=>{if(!img.naturalWidth)return;avatar.style.aspectRatio=img.naturalWidth+'/'+img.naturalHeight;
+ const full=/mamoun-buddy\.png/.test(img.currentSrc||img.src);
+ const m=full?{mx:'56.1%',my:'18.85%',mwid:'8.2%',mh:'1.15%'}:{mx:'50.3%',my:'18.7%',mwid:'5.4%',mh:'1.5%'};
+ for(const k in m)avatar.style.setProperty('--'+k,m[k])};img.addEventListener('load',fit);fit()})();
 async function checkAiReady(){
- try{const r=await fetch(STATUS_API,{cache:'no-store'});const j=await r.json();const ok=!!j.ok;launcher.classList.toggle('ai-ready',ok);launcher.classList.toggle('ai-off',!ok);if(aiBadge)aiBadge.textContent=ok?'AI ✓':'AI !';if(launcherLabel)launcherLabel.textContent=ok?'تحدّث مع المأمون AI':'المأمون AI يحتاج تفعيل';return ok}catch{launcher.classList.add('ai-off');if(aiBadge)aiBadge.textContent='AI !';return false}}
+ /* V36.21: عند التشغيل المحلي (بدون Netlify) لا توجد خدمة AI، فنخفي زر المحادثة بدل أن يظهر للطالب زر لا يعمل */
+ const setAvail=ok=>{document.body.classList.toggle('mamoun-ai-unavailable',!ok);const h=document.getElementById('heroAiBtn');if(h){if(ok)h.style.removeProperty('display');else h.style.setProperty('display','none','important')}};
+ try{const r=await fetch(STATUS_API,{cache:'no-store'});const j=await r.json();const ok=!!j.ok;setAvail(ok);launcher.classList.toggle('ai-ready',ok);launcher.classList.toggle('ai-off',!ok);if(aiBadge)aiBadge.textContent=ok?'AI ✓':'AI !';if(launcherLabel)launcherLabel.textContent=ok?'تحدّث مع المأمون AI':'المأمون AI يحتاج تفعيل';return ok}catch{setAvail(false);launcher.classList.add('ai-off');if(aiBadge)aiBadge.textContent='AI !';return false}}
 checkAiReady();window.addEventListener('maamoon-ai-voice',e=>{const ok=!!e.detail?.ok;launcher.classList.toggle('ai-ready',ok);launcher.classList.toggle('ai-off',!ok);if(aiBadge)aiBadge.textContent=ok?'AI ✓':'AI !'});
 
 
 function setAvatar(mode){avatar.classList.remove('talking','listening','thinking');if(mode)avatar.classList.add(mode)}
 function setStatus(text,kind=''){status.className='mb-scene-status'+(kind?' '+kind:'');status.querySelector('span').textContent=text}
-function addMsg(who,text){if(!text||!text.trim())return;const m=el('div','mb-msg '+who,safe(text.trim()));transcript.appendChild(m);transcript.scrollTop=transcript.scrollHeight}
+function addMsg(who,text){
+ if(!text||!text.trim())return;
+ /* V36.15 — keep the child focused on the current exchange instead of stacking every turn downward */
+ if(who==='child'){
+  transcript.querySelectorAll('.mb-msg.child,.mb-msg.mamoun').forEach(n=>n.remove());
+ }else if(who==='mamoun'){
+  transcript.querySelectorAll('.mb-msg.mamoun').forEach(n=>n.remove());
+ }else if(who==='system'){
+  transcript.querySelectorAll('.mb-msg.system').forEach(n=>n.remove());
+ }
+ const m=el('div','mb-msg '+who,safe(text.trim()));
+ transcript.appendChild(m);
+ const msgs=[...transcript.querySelectorAll('.mb-msg')];
+ while(msgs.length>3){const n=msgs.shift();if(n&&n.parentNode)n.remove()}
+ requestAnimationFrame(()=>{transcript.scrollTop=0});
+}
 function clearWelcome(){const w=transcript.querySelector('.mb-welcome');if(w)w.remove()}
 function send(obj){if(dc?.readyState==='open')dc.send(JSON.stringify(obj))}
 function refreshContext(){if(!connected)return;send({type:'session.update',session:{instructions:baseInstruction()}})}
-function askContext(){if(!connected)return;refreshContext();send({type:'response.create',response:{instructions:`ساعد الطفل الآن في النشاط الظاهر. ${contextText()} أعط توجيهًا قصيرًا جدًا بالعربية الفصحى، ثم اسأله سؤالًا واحدًا بسيطًا مرتبطًا بالنشاط.`}})}
+function askContext(){if(!connected)return;refreshContext();send({type:'response.create',response:{instructions:`ساعد الطفل الآن في النشاط الظاهر، ولا تبدأ بأي تحية. ${contextText()} أعط توجيهًا قصيرًا جدًا بالعربية الفصحى، ثم اسأله سؤالًا واحدًا بسيطًا مرتبطًا بالنشاط.`}})}
 
 function onEvent(e){let ev;try{ev=JSON.parse(e.data)}catch{return}
  switch(ev.type){
   case 'session.created':
   case 'session.updated': break;
-  case 'input_audio_buffer.speech_started': setAvatar('listening');setStatus('أنا أستمع إليك…','listening');break;
-  case 'input_audio_buffer.speech_stopped': setAvatar('thinking');setStatus('أفكر في إجابتك…','live');break;
+  case 'input_audio_buffer.speech_started': if(avatar.classList.contains('talking'))break;setAvatar('listening');setStatus('أنا أستمع إليك…','listening');break;
+  case 'input_audio_buffer.speech_stopped': if(avatar.classList.contains('talking'))break;setAvatar('thinking');setStatus('أفكر في إجابتك…','live');break;
   case 'conversation.item.input_audio_transcription.completed':
-    lastUser=ev.transcript||'';if(lastUser){clearWelcome();addMsg('child',lastUser)}break;
-  case 'response.created': setAvatar('thinking');setStatus('أفكر…','live');lastAssistant='';break;
+    lastUser=(ev.transcript||'').trim();if(lastUser){clearWelcome();
+     /* V38.8: الكتابة الآلية لكلمة قصيرة قد تخطئ أو تُكتب بحروف لاتينية؛ نعرض الكلام العربي فقط */
+     if(/[\u0600-\u06FF]/.test(lastUser))addMsg('child',lastUser);else addMsg('child','🎤 …')}break;
+  case 'response.created': transcript.querySelectorAll('.mb-msg.mamoun').forEach(n=>n.remove());setAvatar('thinking');setStatus('أفكر…','live');lastAssistant='';break;
   case 'response.output_audio_transcript.delta':
     lastAssistant+=(ev.delta||'');setAvatar('talking');setStatus('المأمون يتحدث…','live');break;
   case 'response.output_audio_transcript.done':
     if(ev.transcript)lastAssistant=ev.transcript; if(lastAssistant){clearWelcome();addMsg('mamoun',lastAssistant);lastAssistant=''}break;
   case 'response.output_audio.done': setAvatar('');setStatus('تحدّث الآن، أنا أستمع إليك','live');break;
   case 'response.done': if(ev.response?.status==='failed'){addMsg('system','تعذر إكمال الرد. حاول مرة أخرى.');setAvatar('');}break;
-  case 'error': addMsg('system','حدث خطأ في الاتصال. جرّب إنهاء الحديث ثم ابدأ من جديد.');setAvatar('');break;
+  case 'error':{/* V38.8: أخطاء عابرة (مثل: الطفل تكلم والمأمون ما زال يرد) لا تعني انقطاع الاتصال */
+    const code=String(ev.error?.code||ev.error?.type||'');console.warn('Realtime error',code,ev.error?.message||'');
+    if(/active_response|cancel_not_active|commit_empty|buffer_too_small|item_truncate|response_cancel/i.test(code))break;
+    if(pc&&pc.connectionState==='connected'&&!/session|auth|rate|quota|expired/i.test(code))break;
+    addMsg('system','حدث خطأ في الاتصال. جرّب إنهاء الحديث ثم ابدأ من جديد.');setAvatar('');break}
  }
 }
 
 async function connect(){
- if(connected)return disconnect();
+ /* V38.9: لمسة سريعة بعد الاتصال مباشرة (ضغطة مزدوجة) لا تنهي الحديث بالخطأ */
+ if(connected){if(Date.now()-connectedAt<2500)return;return disconnect()}
  start.disabled=true;start.classList.add('connecting');start.querySelector('span').textContent='جاري الاتصال…';setStatus('جاري تجهيز الميكروفون…');
  try{
   if(!navigator.mediaDevices?.getUserMedia)throw new Error('microphone_unsupported');
@@ -91,7 +120,7 @@ async function connect(){
   stream.getTracks().forEach(t=>pc.addTrack(t,stream));
   dc=pc.createDataChannel('oai-events');dc.addEventListener('message',onEvent);
   dc.addEventListener('open',()=>{
-    connected=true;start.disabled=false;start.classList.remove('connecting');start.classList.add('stop');start.innerHTML='⏹️ <span>إنهاء الحديث</span>';mute.disabled=false;contextBtn.disabled=false;setStatus('تحدّث الآن، أنا أستمع إليك','live');
+    connected=true;start.disabled=false;start.classList.remove('connecting');start.classList.add('stop');start.innerHTML='⏹️ <span>إنهاء الحديث</span>';connectedAt=Date.now();mute.disabled=false;contextBtn.disabled=false;setStatus('تحدّث الآن، أنا أستمع إليك','live');
     refreshContext();
     send({type:'response.create',response:{instructions:'ابدأ الجلسة الآن بقول: "أهلًا يا بطل! أنا المأمون. هيا نتعلم العربية معًا. هل أنت مستعد؟" قلها بصوت دافئ وبطيء، ولا تضف سؤالًا آخر.'}});
     clearTimeout(sessionTimer);sessionTimer=setTimeout(()=>{addMsg('system','انتهت جلسة التدريب القصيرة. يمكنك بدء جلسة جديدة متى شئت.');disconnect()},MAX_MS);
@@ -110,7 +139,7 @@ async function connect(){
  }
 }
 function cleanup(){clearTimeout(sessionTimer);sessionTimer=null;try{dc?.close()}catch{};try{pc?.close()}catch{};try{stream?.getTracks().forEach(t=>t.stop())}catch{};pc=dc=stream=null;connected=false;muted=false;setAvatar('')}
-function disconnect(showMsg=true){cleanup();start.disabled=false;start.classList.remove('connecting','stop');start.innerHTML='🎙️ <span>ابدأ الحديث</span>';mute.disabled=true;contextBtn.disabled=true;mute.textContent='🔇 كتم الميكروفون';setStatus('المأمون جاهز للتحدث معك');if(showMsg)addMsg('system','تم إنهاء الحديث.')}
+function disconnect(showMsg=true){cleanup();start.disabled=false;start.classList.remove('connecting','stop');start.innerHTML='🎙️ <span>ابدأ الحديث</span>';mute.disabled=true;contextBtn.disabled=true;mute.textContent='🔇 كتم الميكروفون';setStatus('المأمون جاهز للتحدث معك');if(showMsg)addMsg('system','أنهيتَ الحديث. اضغط «ابدأ الحديث» لتتكلم مع المأمون مرة أخرى.')}
 function toggleMute(){if(!stream)return;muted=!muted;stream.getAudioTracks().forEach(t=>t.enabled=!muted);mute.textContent=muted?'🎙️ تشغيل الميكروفون':'🔇 كتم الميكروفون';setStatus(muted?'الميكروفون مكتوم':'تحدّث الآن، أنا أستمع إليك',muted?'':'live')}
 function open(){backdrop.classList.add('open');document.body.style.overflow='hidden';const img=document.getElementById('mbBuddyImage');if(img&&img.dataset.fullSrc&&img.src.indexOf('mamoun-buddy.png')<0){const full=new Image();full.onload=()=>{img.src=img.dataset.fullSrc};full.src=img.dataset.fullSrc}}
 function close(){backdrop.classList.remove('open');document.body.style.overflow='';if(connected)disconnect(false)}
@@ -419,6 +448,9 @@ function moveTo(target,{celebrateChange=true}={}){
   if(target.classList.contains('path-dot'))target.classList.add('current-checkpoint');
 
   const key=targetKey(target);
+  /* V36.21: إذا كان المأمون واقفًا على الهدف نفسه لا نغيّر شيئًا.
+     بدون هذا الشرط كان كل تحريك يطلق MutationObserver من جديد فيبقى المأمون «يركض» بلا توقف ويستهلك المعالج. */
+  if(key===lastKey&&wrap.style.left===p.x+'%'&&wrap.style.top===p.y+'%'&&target.classList.contains('path-dot')===target.classList.contains('current-checkpoint'))return;
   const changed=!!lastKey&&key!==lastKey;
 
   if(mood)mood.textContent=moodText(target);
