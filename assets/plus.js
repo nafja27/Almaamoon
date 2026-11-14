@@ -164,7 +164,39 @@ function addSay(host,text,kind){
   if(tries===1){const a=API();if(a&&a.recordMic)a.recordMic(st>=2)}
   if(st<3&&tries<3)lbl.textContent='حَاوِلْ مَرَّةً أُخْرَى';else if(st<3){btn.disabled=true;lbl.textContent='أَحْسَنْتَ المُحَاوَلَةَ'}else lbl.textContent='مَرَّةً أُخْرَى'}}
 
-function init(){wrapMascots();musicButtons();document.body.classList.add('plus-on')}
+
+/* ================= V41: قوانين المأمون — شاشة ترحيب حماسية أول مرة =================
+   تظهر تلقائيًا أول مرة تُفتح فيها اللعبة على الجهاز، ويمكن إعادتها من زر «📜 قوانين المأمون». */
+const RULES=[
+ {e:'🗺️',t:'رِحْلَتُنَا',b:'سَنُسَافِرُ مَعًا إِلَى <b>8 مَحَطَّاتٍ</b> فِي البَحْرَيْنِ، وَفِي النِّهَايَةِ <b>كَنْزُ الطَّلَاقَةِ</b>! 👑',en:'8 stations in Bahrain, then the Treasure of Fluency!',say:'سَنُسَافِرُ مَعًا إِلَى ثَمَانِي مَحَطَّاتٍ فِي البَحْرَيْنِ، وَفِي النِّهَايَةِ كَنْزُ الطَّلَاقَةِ!'},
+ {e:'🎧',t:'القَانُونُ الأَوَّلُ: اسْمَعْ جَيِّدًا',b:'اضْغَطْ <b>🔊</b> لِتَسْمَعَ مَرَّةً أُخْرَى، وَ<b>🐢</b> لِتَسْمَعَ بِبُطْءٍ. اسْمَعْ كَثِيرًا… لَا بَأْسَ!',en:'Tap 🔊 to hear again, 🐢 to hear slowly.',say:'اسْمَعْ جَيِّدًا. اضْغَطِ السَّمَّاعَةَ لِتَسْمَعَ مَرَّةً أُخْرَى.'},
+ {e:'⭐',t:'القَانُونُ الثَّانِي: اجْمَعِ النُّجُومَ',b:'الإِجَابَةُ الصَّحِيحَةُ مِنْ أَوَّلِ مَرَّةٍ = <b>⭐ نُجُومٌ</b>. وَثَلَاثُ إِجَابَاتٍ وَرَاءَ بَعْضٍ = <b>🔥 سِلْسِلَةٌ</b>!',en:'Right first time = stars. 3 in a row = a streak!',say:'أَجِبْ صَحِيحًا مِنْ أَوَّلِ مَرَّةٍ، وَاجْمَعِ النُّجُومَ!'},
+ {e:'🔑',t:'القَانُونُ الثَّالِثُ: افْتَحِ المَحَطَّةَ',b:'أَتْقِنِ المُهِمَّةَ بِـ <b>80%</b> لِتَحْصُلَ عَلَى <b>مِفْتَاحٍ</b> وَتَفْتَحَ المَحَطَّةَ التَّالِيَةَ.',en:'Score 80% to win a key and open the next station.',say:'أَتْقِنِ المُهِمَّةَ، وَخُذِ المِفْتَاحَ، وَافْتَحِ المَحَطَّةَ التَّالِيَةَ!'},
+ {e:'💪',t:'القَانُونُ الرَّابِعُ: الخَطَأُ مَسْمُوحٌ',b:'الأَبْطَالُ يُخْطِئُونَ وَيَتَعَلَّمُونَ. إِذَا أَخْطَأْتَ، أَنَا مَعَكَ وَنَتَدَرَّبُ خُطْوَةً خُطْوَةً. 🌱',en:'Mistakes are OK — we practise together.',say:'الخَطَأُ مَسْمُوحٌ! الأَبْطَالُ يُخْطِئُونَ وَيَتَعَلَّمُونَ، وَأَنَا مَعَكَ.'},
+ {e:'🎤',t:'القَانُونُ الخَامِسُ: تَكَلَّمْ بِصَوْتِكَ',b:'قُلِ الكَلِمَاتِ بِصَوْتٍ وَاضِحٍ 🎤، وَتَحَدَّثْ مَعِي فِي <b>المَأْمُون AI</b>. أَنَا أُحِبُّ أَنْ أَسْمَعَكَ!',en:'Say the words aloud and talk to Al Maamoon AI.',say:'تَكَلَّمْ بِصَوْتِكَ، وَتَحَدَّثْ مَعِي. أَنَا أُحِبُّ أَنْ أَسْمَعَكَ!'},
+ {e:'📅',t:'القَانُونُ السَّادِسُ: كُلَّ يَوْمٍ مُغَامَرَةٌ',b:'كُلَّ يَوْمٍ تُفْتَحُ لَكَ <b>مَهَامُّ جَدِيدَةٌ</b>. تَعَالَ كُلَّ يَوْمٍ قَلِيلًا… وَسَتَصِلُ إِلَى الكَنْزِ! 🏆',en:'New missions open every day. A little every day!',say:'كُلَّ يَوْمٍ مَهَامُّ جَدِيدَةٌ. تَعَالَ كُلَّ يَوْمٍ، وَسَتَصِلُ إِلَى الكَنْزِ!'}
+];
+const RULES_KEY='almaamoon_rules_seen_v41';
+function rulesSeen(){try{return localStorage.getItem(RULES_KEY)==='1'}catch(e){return true}}
+function openRules(auto){if(document.querySelector('.rules-ov'))return;let i=0;const ov=document.createElement('div');ov.className='rules-ov';ov.setAttribute('role','dialog');ov.setAttribute('aria-label','قوانين المأمون');
+ ov.innerHTML=`<div class="rules-card"><button class="rules-skip" type="button">تخطَّ ✕</button><div class="rules-top"><img class="rules-mascot" src="assets/mascot.webp?v=365" alt=""><div class="rules-bubble"><b>📜 قَوَانِينُ المَأْمُونِ</b><span>أَهْلًا يَا بَطَلُ! قَبْلَ أَنْ نَبْدَأَ، تَعَرَّفْ عَلَى قَوَانِينِ المُغَامَرَةِ.</span></div></div><div class="rules-stage"></div><div class="rules-dots">${[...RULES,0].map((_,k)=>`<i data-k="${k}"></i>`).join('')}</div><div class="rules-nav"><button class="big-btn ghost rules-prev" type="button">◀ السابق</button><button class="big-btn primary rules-next" type="button">التالي ▶</button></div></div>`;
+ document.body.appendChild(ov);sfx('pop');const stage=ov.querySelector('.rules-stage'),next=ov.querySelector('.rules-next'),prev=ov.querySelector('.rules-prev'),mas=ov.querySelector('.rules-mascot');
+ const say=t=>{const a=API();if(a&&a.speak&&soundOn())a.speak(t,.88)};
+ const close=()=>{try{localStorage.setItem(RULES_KEY,'1')}catch(e){}const a=API();if(a&&a.stopAudio)a.stopAudio();ov.classList.add('out');setTimeout(()=>ov.remove(),300)};
+ const draw=()=>{ov.querySelectorAll('.rules-dots i').forEach((d,k)=>{d.classList.toggle('on',k===i);d.classList.toggle('done',k<i)});prev.style.visibility=i?'visible':'hidden';mas.classList.remove('jump');void mas.offsetWidth;mas.classList.add('jump');
+  if(i<RULES.length){const r=RULES[i];stage.innerHTML=`<div class="rules-rule"><div class="rules-emoji">${r.e}</div><h3>${r.t}</h3><p>${r.b}</p><small dir="ltr">${r.en}</small></div>`;next.textContent=i===RULES.length-1?'آخِرُ خُطْوَةٍ ▶':'التالي ▶';say(r.say);sfx('star',Math.min(2,i%3))}
+  else{stage.innerHTML=`<div class="rules-rule rules-final"><div class="rules-emoji">🤝</div><h3>هَلْ أَنْتَ جَاهِزٌ يَا بَطَلُ؟</h3><p>أَعِدُ أَنْ <b>أَسْمَعَ جَيِّدًا</b>، وَ<b>أُحَاوِلَ</b> دَائِمًا، وَ<b>لَا أَسْتَسْلِمَ</b>!</p><button class="big-btn gold rules-ready" type="button">✋ أَنَا جَاهِزٌ!</button></div>`;next.style.display='none';say('هَلْ أَنْتَ جَاهِزٌ يَا بَطَلُ؟');
+   stage.querySelector('.rules-ready').onclick=()=>{sfx('mission');react('cheer',document.querySelector('.screen.active .plus-mascot'));confettiBurst(ov);say('هَيَّا نَبْدَأُ المُغَامَرَةَ!');mas.classList.add('cheer');setTimeout(close,1900)}}};
+ next.onclick=()=>{if(i<RULES.length){i++;draw()}};prev.onclick=()=>{if(i>0){i--;next.style.display='';draw()}};ov.querySelector('.rules-skip').onclick=close;
+ ov.querySelectorAll('.rules-dots i').forEach(d=>d.onclick=()=>{i=+d.dataset.k;next.style.display='';draw()});
+ let x0=null;stage.addEventListener('touchstart',e=>{x0=e.touches[0].clientX},{passive:true});stage.addEventListener('touchend',e=>{if(x0==null)return;const dx=e.changedTouches[0].clientX-x0;x0=null;if(dx<-40&&i>0){i--;next.style.display='';draw()}else if(dx>40&&i<RULES.length){i++;draw()}});
+ document.addEventListener('keydown',function k(e){if(!document.body.contains(ov)){document.removeEventListener('keydown',k);return}if(e.key==='ArrowLeft')next.click();if(e.key==='ArrowRight')prev.click();if(e.key==='Escape')close()});
+ draw()}
+function confettiBurst(host){if(reduced())return;const box=document.createElement('div');box.className='plus-star-rain';for(let k=0;k<40;k++){const s=document.createElement('span');s.textContent=pick(['🎉','⭐','✨','🔑','🏆']);s.style.left=Math.random()*100+'%';s.style.animationDelay=Math.random()*.6+'s';box.appendChild(s)}host.appendChild(box)}
+function setupRules(){const b=document.getElementById('rulesBtn');if(b)b.onclick=()=>openRules(false);
+ if(!rulesSeen()){/* أول مرة: تظهر بعد لحظة؛ الصوت يبدأ بعد أول لمسة (قيد المتصفح) */setTimeout(()=>{if(document.querySelector('#startScreen.active'))openRules(true)},700)}}
+window.MaamoonRules=openRules;
+function init(){wrapMascots();musicButtons();setupRules();document.body.classList.add('plus-on')}
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);else init();
-window.MaamoonPlus={sfx,bubble,react,version:'V38'};
+window.MaamoonPlus={sfx,bubble,react,version:'V41'};
 })();

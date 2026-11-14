@@ -92,7 +92,9 @@ function onEvent(e){let ev;try{ev=JSON.parse(e.data)}catch{return}
   case 'conversation.item.input_audio_transcription.completed':
     lastUser=(ev.transcript||'').trim();if(lastUser){clearWelcome();
      /* V38.8: الكتابة الآلية لكلمة قصيرة قد تخطئ أو تُكتب بحروف لاتينية؛ نعرض الكلام العربي فقط */
-     if(/[\u0600-\u06FF]/.test(lastUser))addMsg('child',lastUser);else addMsg('child','🎤 …')}break;
+     /* V40.5: نتجاهل نصًا وهميًا يكتبه نظام الكتابة الآلية عند الصمت أو الضوضاء (مثل تكرار كلمات التعليمات) */
+     const junk=/حوت،?\s*باب،?\s*قلم|اكتب ما قاله|طفل يتعلم العربية|ترجمة|اشترك|subscribe/i.test(lastUser);
+     if(junk)break;if(/[\u0600-\u06FF]/.test(lastUser))addMsg('child',lastUser);else addMsg('child','🎤 …')}break;
   case 'response.created': transcript.querySelectorAll('.mb-msg.mamoun').forEach(n=>n.remove());setAvatar('thinking');setStatus('أفكر…','live');lastAssistant='';break;
   case 'response.output_audio_transcript.delta':
     lastAssistant+=(ev.delta||'');setAvatar('talking');setStatus('المأمون يتحدث…','live');break;

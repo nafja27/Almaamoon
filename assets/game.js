@@ -1450,7 +1450,11 @@ function tlRun(l,k,{source='task'}={}){tlReturn=$('worldScreen').classList.conta
  intro()}
 function tlBack(){if(tlReturn==='worldScreen'&&current()){prepareWorld();show('worldScreen')}else if(tlReturn==='labScreen')openLab();else{show('startScreen');refreshResume()}}
 /* الكلمة مع تلوين المقطع المطلوب */
-function tlMarkWord(w,l,k){const re=tlRe(l,k);const gs=graphemes(w);return gs.map((g,j)=>re.test(g+(gs[j+1]||'').replace(/[ً-ْ]/g,''))?`<mark class="tl-hit">${esc(g)}</mark>`:esc(g)).join('')}
+/*V40.3: تلوين حرف داخل الكلمة مع بقاء الحروف متصلة (Safari يقطع الاتصال عند تغيير اللون) — نستخدم واصلًا صفري العرض ZWJ */
+const ZWJ='\u200d';const joinsL=c=>!!c&&!'ادذرزوأإآءةى'.includes(c)&&/[\u0621-\u064A]/.test(c);const baseG=g=>g.replace(/[\u064B-\u0652]/g,'');
+function markJoined(w,hit){const gs=graphemes(w);return gs.map((g,j)=>{if(!hit.includes(j))return esc(g);const p=gs[j-1],n=gs[j+1];const a=p&&joinsL(baseG(p))?ZWJ:'',b=n&&joinsL(baseG(g))?ZWJ:'';return `${a}<mark class="tl-hit">${a}${esc(g)}${b}</mark>${b}`}).join('')}
+function blankJoined(gs,j){const p=gs[j-1],n=gs[j+1];return gs.map((g,k)=>k!==j?esc(g):`${p&&joinsL(baseG(p))?'ـ':''}<span class="az-blank">…</span>${n&&joinsL(baseG(g))?'ـ':''}`).join('')}
+function tlMarkWord(w,l,k){const re=tlRe(l,k);const gs=graphemes(w);const hit=gs.map((g,q)=>re.test(g+baseG(gs[q+1]||''))?q:-1).filter(q=>q>=0);return markJoined(w,hit)}
 
 /* ---------- ربط المختبر بالشاشات ---------- */
 /* مختبر الحروف: زر «وضع المعلمة» */
@@ -1518,7 +1522,7 @@ function azRun(l){$('azharTitle').innerHTML=`🤝 حَرْفُ ${esc(azName(l))}
   /* 3) اكْتُبِ الحَرْفَ بِشَكْلِهِ الصَّحِيحِ فِي الكَلِمَةِ (3 كلمات) */
   if(st==='fill'){let q=0;const list=words.filter(w=>azLetterIn(w,l).length).slice(0,3);if(!list.length)return nextStep();
    const one=()=>{const w=list[q],gs=graphemes(w),j=azLetterIn(w,l)[0],f=azFormOf(gs,j),mark=gs[j].replace(/[^ً-ْ]/g,'')||'َ';const fs=[...new Set((azJoins(l)?['start','mid','end','alone']:['alone','end']).map(x=>azGlyph(l,x,mark)))];const opts=shuffle(fs).slice(0,3);const right=azGlyph(l,f,mark);if(!opts.includes(right))opts[0]=right;const o2=shuffle(opts);const ans=o2.indexOf(right);
-    const blank=gs.map((g,k)=>k===j?'<span class="az-blank">…</span>':esc(g)).join('');
+    const blank=blankJoined(gs,j);
     b.innerHTML=head(`اكْتُبْ حَرْفَ (${syl}) بِشَكْلِهِ الصَّحِيحِ فِي الكَلِمَةِ`,'Write the letter in its right shape')+`<div class="activity-target small"><span class="ar-text az-word" data-w>${blank}</span></div><div class="sound-actions"><button class="control-btn" data-h>🔊 الكلمة</button></div><div data-o></div><div class="feedback" data-f></div><div class="after-actions" data-a></div>`;
     b.querySelector('[data-h]').onclick=()=>speak(w,.7);later(()=>speak(w,.7),300);
     const btns=renderOptions(b.querySelector('[data-o]'),o2,{withAudio:false,tl:false,onPick:idx=>{const ok=idx===ans;lockAndMark(btns,idx,ans,true);beep(ok);reward(ok);add(ok?1:0,1);b.querySelector('[data-w]').innerHTML=azMark(w,l);fbk(b,ok);later(()=>speak(w,.7),300);after(b,()=>{q++;if(q<list.length)one();else nextStep()})}})};one();return}
@@ -1530,7 +1534,7 @@ function azRun(l){$('azharTitle').innerHTML=`🤝 حَرْفُ ${esc(azName(l))}
   /* 5) اكْتُبِ الحَرْفَ النَّاقِصَ (وعي صوتي) */
   if(st==='missing'){let q=0;const list=shuffle(words).slice(0,3);
    const one=()=>{const w=list[q],gs=graphemes(w),j=azLetterIn(w,l)[0];if(j==null){q++;return q<list.length?one():nextStep()}const mark=gs[j].replace(/[^ً-ْ]/g,'');const right=(l==='أ'?'أ':l)+mark;const opts=shuffle([right,...others.slice(q,q+2).map(x=>x+mark)]);const ans=opts.indexOf(right);
-    b.innerHTML=head('اكْتُبِ الحَرْفَ النَّاقِصَ','Write the missing letter')+`<p class="prompt-ar">اسْمَعِ الكَلِمَةَ، ثُمَّ اخْتَرِ الحَرْفَ النَّاقِصَ.</p><div class="activity-target small"><span class="ar-text az-word" data-w>${gs.map((g,k)=>k===j?'<span class="az-blank">…</span>':esc(g)).join('')}</span></div><div class="sound-actions"><button class="control-btn" data-h>🔊 الكلمة</button></div><div data-o></div><div class="feedback" data-f></div><div class="after-actions" data-a></div>`;
+    b.innerHTML=head('اكْتُبِ الحَرْفَ النَّاقِصَ','Write the missing letter')+`<p class="prompt-ar">اسْمَعِ الكَلِمَةَ، ثُمَّ اخْتَرِ الحَرْفَ النَّاقِصَ.</p><div class="activity-target small"><span class="ar-text az-word" data-w>${blankJoined(gs,j)}</span></div><div class="sound-actions"><button class="control-btn" data-h>🔊 الكلمة</button></div><div data-o></div><div class="feedback" data-f></div><div class="after-actions" data-a></div>`;
     b.querySelector('[data-h]').onclick=()=>speak(w,.7);later(()=>speak(w,.7),300);
     const btns=renderOptions(b.querySelector('[data-o]'),opts,{withAudio:true,tl:false,onPick:idx=>{const ok=idx===ans;lockAndMark(btns,idx,ans,true);beep(ok);reward(ok);add(ok?1:0,1);b.querySelector('[data-w]').innerHTML=azMark(w,l);fbk(b,ok);after(b,()=>{q++;if(q<list.length)one();else nextStep()})}})};one();return}
   /* 6) اكْتَشِفْ كَلِمَاتِنَا السِّرِّيَّةَ فِي اللُّعْبَةِ */
@@ -1544,7 +1548,7 @@ function azRun(l){$('azharTitle').innerHTML=`🤝 حَرْفُ ${esc(azName(l))}
      if(solved===list.length){add(Math.max(0,1-miss*.15),1);reward(true,miss===0);praise();fbk(b,true,'وَجَدْتَ كُلَّ الكَلِمَاتِ السِّرِّيَّةِ! 🔎');after(b)}}
     else if(picked.length>=3||!target.startsWith(word)){miss++;beep(false);const ps=picked;setTimeout(()=>ps.forEach(p=>{if(!p.el.classList.contains('found'))p.el.classList.remove('sel')}),350);picked=[]}});return}
   /* 7) تَحَدِّي القِرَاءَةِ */
-  if(st==='read'){const ph=[];const ws=shuffle(words);for(let k=0;k+1<ws.length&&ph.length<3;k+=2)ph.push(ws[k]+' '+ws[k+1]);let q=0,pts=0;
+  if(st==='read'){/*V40.4: جمل حقيقية صحيحة المعنى بدل ضم كلمتين عشوائيتين*/const ph=shuffle(((AZ.sentences||{})[l]||[]).slice()).slice(0,3);let q=0,pts=0;
    const one=()=>{const t=ph[q];b.innerHTML=head('تَحَدِّي القِرَاءَةِ','Reading challenge')+`<p class="prompt-ar">اقْرَأِ الجُمْلَةَ بِصَوْتٍ عَالٍ، ثُمَّ اسْتَمِعْ وَتَحَقَّقْ.</p><div class="activity-target small"><span class="ar-text sentence">${azMark(t,l)}</span></div><div class="sound-actions"><button class="control-btn" data-h>🔊 استمع</button></div><div class="az-rate"><button data-v="1">🤩<small>مُحَاوَلَةٌ مُمْتَازَةٌ</small></button><button data-v=".7">🙂<small>مُحَاوَلَةٌ جَيِّدَةٌ</small></button><button data-v=".4">😐<small>أَحْتَاجُ تَدْرِيبًا</small></button></div><div class="after-actions" data-a></div>`;
     b.querySelector('[data-h]').onclick=()=>speak(t,.65);plusEmit('say',{host:b.querySelector('[data-a]'),text:t,kind:'sentence'});
     b.querySelectorAll('.az-rate button').forEach(x=>x.onclick=()=>{b.querySelectorAll('.az-rate button').forEach(y=>{y.disabled=true;y.classList.toggle('sel',y===x)});pts+=+x.dataset.v;beep(true);speak(t,.65);after(b,()=>{q++;if(q<ph.length)one();else{add(pts/ph.length,1);nextStep()}})})};if(!ph.length)return nextStep();one();return}
@@ -1567,7 +1571,7 @@ function azRun(l){$('azharTitle').innerHTML=`🤝 حَرْفُ ${esc(azName(l))}
   b.querySelector('[data-r]').onclick=()=>azRun(l);b.querySelector('[data-l]').onclick=()=>openAzhar(azReturn);b.querySelector('[data-b]').onclick=azBack}
  draw()}
 /* الكلمة مع تلوين الحرف المطلوب */
-function azMark(t,l){return t.split(' ').map(w=>{const gs=graphemes(w);const hit=azLetterIn(w,l);return gs.map((g,j)=>hit.includes(j)?`<mark class="tl-hit">${esc(g)}</mark>`:esc(g)).join('')}).join(' ')}
+function azMark(t,l){return t.split(' ').map(w=>markJoined(w,azLetterIn(w,l))).join(' ')}
 /* ربط: زر في شريط الخريطة + في مختبر الحروف + في تقرير الطالب */
 navTab=(orig=>function(tab){if(tab==='azhar')return openAzhar('worldScreen');return orig(tab)})(navTab);
 openLab=(orig=>function(from){orig(from);const r=document.querySelector('#labContent .tl-lab-row');if(r&&!r.querySelector('#azLabBtn')){const x=document.createElement('button');x.className='big-btn gold';x.id='azLabBtn';x.textContent='🤝 خذ بيدي لأزهر';x.onclick=()=>openAzhar('labScreen');r.appendChild(x)}})(openLab);
@@ -1576,5 +1580,5 @@ showStudentReport=(orig=>function(id){orig.apply(this,arguments);const s=db.stud
  const actions=card.querySelector('.form-actions:last-of-type');if(actions)actions.before(box);else card.appendChild(box)})(showStudentReport);
 
 /* لأغراض الاختبار الآلي فقط */
-window.__maamoon={openAzhar,azRun,tlRun,tlWords,tlSyl,tlOpenTeacherMode,get db(){return db},get settings(){return settings},speak,stopAudio,recordMic,refreshHud,isSpeaking:()=>!!(aiTtsSource||aiTtsAbort||(currentAudio&&!currentAudio.paused&&!currentAudio.ended)||('speechSynthesis'in window&&speechSynthesis.speaking)),get cloud(){return cloud},runSync,CLOUD,persist,recordMission,missionAccess,nextMi,MISSIONS,minDays,openImport,askPinChoice,openWorkshop,openLetterCheck,knownCount,letterStatus,needsLetterCheck,tracePad,current,STAGES,launchStage,finishStage,startDiagnostic,prepareWorld,showProfile,openLab,showAdmin,translit,tierFor};
+window.__maamoon={__mk:(w,l)=>markJoined(w,azLetterIn(w,l)),__bl:(w,l)=>blankJoined(graphemes(w),azLetterIn(w,l)[0]),openAzhar,azRun,tlRun,tlWords,tlSyl,tlOpenTeacherMode,get db(){return db},get settings(){return settings},speak,stopAudio,recordMic,refreshHud,isSpeaking:()=>!!(aiTtsSource||aiTtsAbort||(currentAudio&&!currentAudio.paused&&!currentAudio.ended)||('speechSynthesis'in window&&speechSynthesis.speaking)),get cloud(){return cloud},runSync,CLOUD,persist,recordMission,missionAccess,nextMi,MISSIONS,minDays,openImport,askPinChoice,openWorkshop,openLetterCheck,knownCount,letterStatus,needsLetterCheck,tracePad,current,STAGES,launchStage,finishStage,startDiagnostic,prepareWorld,showProfile,openLab,showAdmin,translit,tierFor};
 })();

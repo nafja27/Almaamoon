@@ -32,7 +32,7 @@ export default async(request)=>{
      /* V38: تقليل ضوضاء الصف، وعدم قطع كلام المأمون عند سماع أي صوت */
      noise_reduction:{type:'far_field'},
      turn_detection:{type:'semantic_vad',eagerness:'low',create_response:true,interrupt_response:false},
-     transcription:{model:'gpt-4o-transcribe',language:'ar',prompt:'طفل يتعلم العربية ينطق كلمات قصيرة أو مقاطع مثل: حوت، باب، قلم، بَا، بُو، بِي. اكتب ما قاله بالحروف العربية فقط.'}
+     transcription:{model:'gpt-4o-transcribe',language:'ar'}
     },
     output:{voice:'marin'}
    }

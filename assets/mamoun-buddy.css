@@ -94,3 +94,5 @@
 .mb-avatar img{position:relative;z-index:2}.mb-avatar::after{z-index:1;background:radial-gradient(circle,rgba(25,167,216,.12),transparent 70%)}
 /* V38.9: زر «إنهاء الحديث» أحمر وواضح حتى لا يُضغط بالخطأ بدل التحدث */
 .mb-main-action.stop{background:linear-gradient(180deg,#ff6b6b,#d63c3c)!important;box-shadow:0 6px 0 #a82a2a,0 10px 18px rgba(160,30,30,.25)!important;color:#fff!important}
+/* V40.5: قاعدة أقوى حتى يظهر زر «إنهاء الحديث» أحمر فعلًا (كانت قاعدة V36 الخضراء تغلبها) */
+.mamoun-buddy-panel .mb-main-action.stop{background:linear-gradient(180deg,#ff6b6b,#d63c3c)!important;border-color:#ffd9d9!important;box-shadow:0 6px 0 #a82a2a,0 10px 18px rgba(160,30,30,.25)!important}

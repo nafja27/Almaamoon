@@ -272,3 +272,35 @@ mark.tl-hit{background:#ffe27a;color:#a3360b;border-radius:8px;padding:0 2px}
 .az-opinion{margin:8px auto;text-align:center}.az-opinion div{display:flex;justify-content:center;gap:10px;margin-top:4px}
 .az-opinion button{font-size:40px;border:2px solid #d6e6f2;border-radius:50%;width:64px;height:64px;background:#fff;cursor:pointer}.az-opinion button.sel{border-color:#2dbb5f;transform:scale(1.12)}
 @media (max-width:640px){.az-spot,.az-secret{grid-template-columns:repeat(4,1fr)}.az-cell{font-size:30px;height:60px}.az-eval{grid-template-columns:1fr}}
+mark.tl-hit{padding:0!important;margin:0!important;border-radius:4px;background:#ffe27a;color:#c2410c}
+mark.tl-hit{padding:0!important;margin:0!important;border-radius:3px;background:#ffe27a;color:#c2410c}
+
+/* ================= V41: قوانين المأمون ================= */
+.h38-rules-btn{margin-inline-start:6px;border:2px solid #e2b54a;background:#fff;color:#8a5a00;font-weight:900;font-size:12px;border-radius:999px;padding:3px 10px;cursor:pointer;vertical-align:middle;animation:rulesPulse 2.4s ease-in-out infinite}
+@keyframes rulesPulse{0%,100%{box-shadow:0 0 0 0 rgba(226,181,74,.5)}50%{box-shadow:0 0 0 6px rgba(226,181,74,0)}}
+.rules-ov{position:fixed;inset:0;z-index:140;display:grid;place-items:center;padding:14px;background:radial-gradient(circle at 50% 30%,rgba(25,120,190,.75),rgba(4,30,60,.92));animation:fadeIn .3s ease}
+.rules-ov.out{animation:fadeOut .3s ease forwards}
+.rules-card{position:relative;width:min(640px,100%);max-height:94vh;overflow:auto;background:linear-gradient(180deg,#fffdf4,#fff3cf);border:5px solid #e9b93a;border-radius:30px;padding:18px 20px 16px;box-shadow:0 30px 60px rgba(0,0,0,.45);animation:cardIn .55s cubic-bezier(.3,1.5,.5,1);direction:rtl}
+.rules-skip{position:absolute;top:10px;left:12px;border:0;background:rgba(11,58,102,.08);color:#0b3a66;border-radius:999px;padding:5px 12px;font-weight:800;cursor:pointer}
+.rules-top{display:flex;align-items:flex-end;gap:10px;margin-top:6px}
+.rules-mascot{width:96px;height:128px;object-fit:contain;object-position:bottom;filter:drop-shadow(0 8px 10px rgba(0,40,80,.25))}
+.rules-mascot.jump{animation:mJump .6s cubic-bezier(.3,1.5,.5,1)}.rules-mascot.cheer{animation:mCheer 1.2s ease}
+.rules-bubble{position:relative;flex:1;background:#fff;border:3px solid #19a7d8;border-radius:20px;padding:8px 12px;margin-bottom:22px}
+.rules-bubble::after{content:'';position:absolute;right:-12px;bottom:14px;border:10px solid transparent;border-left-color:#19a7d8;border-right:0}
+.rules-bubble b{display:block;font-size:22px;color:#0b3a66;font-family:var(--learn)}.rules-bubble span{font-family:var(--learn);color:#35506a;font-size:15px}
+.rules-stage{min-height:230px;display:grid;place-items:center}
+.rules-rule{text-align:center;animation:ruleIn .45s cubic-bezier(.3,1.4,.5,1)}
+@keyframes ruleIn{from{opacity:0;transform:translateX(-40px) scale(.9)}to{opacity:1;transform:none}}
+.rules-emoji{font-size:84px;line-height:1.1;animation:keyFloat 2.2s ease-in-out infinite;filter:drop-shadow(0 8px 10px rgba(0,0,0,.18))}
+.rules-rule h3{margin:6px 0 4px;font-family:var(--learn);font-size:clamp(22px,3.4vw,30px);color:#0b3a66}
+.rules-rule p{margin:0 auto;max-width:520px;font-family:var(--learn);font-size:clamp(18px,2.6vw,22px);line-height:1.9;color:#2a4560}
+.rules-rule p b{color:#c2410c}.rules-rule small{display:block;margin-top:4px;color:#6b8296}
+.rules-final .rules-ready{margin-top:12px;font-size:24px!important;padding:12px 28px!important;animation:ctaPulse 1.6s ease-in-out infinite}
+.rules-dots{display:flex;justify-content:center;gap:6px;margin:8px 0}
+.rules-dots i{width:10px;height:10px;border-radius:50%;background:#e6d8b0;cursor:pointer;transition:.2s}
+.rules-dots i.done{background:#2dbb5f}.rules-dots i.on{background:#e9b93a;width:26px;border-radius:6px}
+.rules-nav{display:flex;justify-content:space-between;gap:10px}
+.rules-nav .big-btn{flex:1;font-size:18px!important;padding:10px!important;min-height:48px}
+.rules-ov .plus-star-rain{position:absolute;z-index:3}
+@media (max-width:520px){.rules-mascot{width:70px;height:96px}.rules-emoji{font-size:64px}.rules-stage{min-height:210px}.rules-bubble b{font-size:18px}}
+.rules-card{padding-top:44px}.rules-skip{z-index:5}
