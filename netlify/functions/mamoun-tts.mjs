@@ -18,6 +18,16 @@ function soundInstruction(text){
  return '';
 }
 
+function throatInstruction(text){
+ /*V41.4: التفريق بين الحاء والخاء والهاء والعين (نَحْلَة لا نَخْلَة)*/
+ const plain=String(text).replace(/[\u064B-\u0652\u0670]/g,'');
+ const has=c=>plain.includes(c);let t='';
+ if(has('ح'))t+=' انتبه: في النص حرف الحاء (ح). انطقها حاءً صافية من وسط الحلق، مهموسة رقيقة بلا خشونة ولا احتكاك في أقصى الفم، ولا تقلبها أبدًا خاءً (خ) ولا هاءً (ه).';
+ if(has('خ'))t+=' في النص حرف الخاء (خ) فانطقها خاءً واضحة من أقصى الحلق ولا تقلبها حاءً.';
+ if(has('ح')||has('خ')){const w=plain.trim();if(!/\s/.test(w)&&w.length<=6)t+=` الكلمة المطلوبة هي «${text}» بالضبط، فلا تستبدلها بكلمة قريبة منها في النطق.`}
+ return t;
+}
+
 export default async(request)=>{
  if(request.method!=='POST')return json({error:'method_not_allowed'},405);
  const key=process.env.OPENAI_API_KEY;
@@ -28,6 +38,7 @@ export default async(request)=>{
   if(!text||!ARABIC.test(text))return json({error:'invalid_text'},400);
   let instructions='تحدث بالعربية الفصحى الواضحة بصوت دافئ وطبيعي ومحادثي، كرفيق تعليمي ودود لطفل يتعلم العربية كلغة ثانية. لا تتحدث كنظام آلي أو كمذيع. استخدم تنغيمًا بشريًا لطيفًا، والتزم بالنص المكتوب كما هو واحترم التشكيل والحركات والمدود بدقة.';
   instructions+=soundInstruction(text);
+  instructions+=throatInstruction(text);
   /* V40.2: منع التكرار */
   instructions+=' انطق النص المكتوب مرة واحدة فقط ثم توقف تمامًا. لا تكرر أي مقطع أو كلمة، ولا تضف أي كلام قبله أو بعده.';
   if(fast)instructions+=' تحدث بحماس وفرح بصوت إنساني دافئ وطبيعي تمامًا، بسرعة كلام طبيعية كأنك تشجع طفلًا متحمسًا، بلا بطء ولا وقفات طويلة.';
