@@ -179,22 +179,32 @@ const RULES=[
 const RULES_KEY='almaamoon_rules_seen_v41';
 function rulesSeen(){try{return localStorage.getItem(RULES_KEY)==='1'}catch(e){return true}}
 function openRules(auto){if(document.querySelector('.rules-ov'))return;let i=0;const ov=document.createElement('div');ov.className='rules-ov';ov.setAttribute('role','dialog');ov.setAttribute('aria-label','قوانين المأمون');
- ov.innerHTML=`<div class="rules-card"><button class="rules-skip" type="button">تخطَّ ✕</button><div class="rules-top"><img class="rules-mascot" src="assets/mascot.webp?v=365" alt=""><div class="rules-bubble"><b>📜 قَوَانِينُ المَأْمُونِ</b><span>أَهْلًا يَا بَطَلُ! قَبْلَ أَنْ نَبْدَأَ، تَعَرَّفْ عَلَى قَوَانِينِ المُغَامَرَةِ.</span></div></div><div class="rules-stage"></div><div class="rules-dots">${[...RULES,0].map((_,k)=>`<i data-k="${k}"></i>`).join('')}</div><div class="rules-nav"><button class="big-btn ghost rules-prev" type="button">◀ السابق</button><button class="big-btn primary rules-next" type="button">التالي ▶</button></div></div>`;
+ ov.innerHTML=`<div class="rules-card"><button class="rules-skip" type="button">تخطَّ ✕</button><button class="rules-hear" type="button" aria-label="استمع">🔊</button><div class="rules-top"><img class="rules-mascot" src="assets/mascot.webp?v=365" alt=""><div class="rules-bubble"><b>📜 قَوَانِينُ المَأْمُونِ</b><span>أَهْلًا يَا بَطَلُ! قَبْلَ أَنْ نَبْدَأَ، تَعَرَّفْ عَلَى قَوَانِينِ المُغَامَرَةِ.</span></div></div><div class="rules-stage"></div><div class="rules-dots">${[...RULES,0].map((_,k)=>`<i data-k="${k}"></i>`).join('')}</div><div class="rules-nav"><button class="big-btn ghost rules-prev" type="button">▶ السابق</button><button class="big-btn primary rules-next" type="button">التالي ◀</button></div></div>`;
  document.body.appendChild(ov);sfx('pop');const stage=ov.querySelector('.rules-stage'),next=ov.querySelector('.rules-next'),prev=ov.querySelector('.rules-prev'),mas=ov.querySelector('.rules-mascot');
- const say=t=>{const a=API();if(a&&a.speak&&soundOn())a.speak(t,.88)};
- const close=()=>{try{localStorage.setItem(RULES_KEY,'1')}catch(e){}const a=API();if(a&&a.stopAudio)a.stopAudio();ov.classList.add('out');setTimeout(()=>ov.remove(),300)};
+ /* V41.3: صوت القوانين بصوت المأمون الطبيعي (OpenAI) بنبرة متحمسة. نجهّز كل المقاطع مسبقًا حتى تُسمع فورًا،
+    ولا نرجع لصوت الجهاز الآلي إذا منع المتصفح التشغيل قبل اللمس؛ يبقى زر 🔊 لإعادة الاستماع. */
+ let rAudio=null,rReq=0;const stopR=()=>{rReq++;if(rAudio){try{rAudio.pause()}catch(e){}rAudio=null}};
+ const pre=new Map();const fetchSay=t=>{if(!pre.has(t))pre.set(t,fetch('/api/mamoun-tts',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({text:t,fast:true})}).then(r=>r.ok?r.blob():Promise.reject(r.status)));return pre.get(t)};
+ [...RULES.map(r=>r.say),'هَلْ أَنْتَ جَاهِزٌ يَا بَطَلُ؟','هَيَّا نَبْدَأُ المُغَامَرَةَ!'].forEach(t=>fetchSay(t).catch(()=>{}));
+ let lastSay='';const say=async t=>{lastSay=t;if(!soundOn())return;const a=API();if(a&&a.stopAudio)a.stopAudio();stopR();const my=rReq;
+  let bl;try{bl=await fetchSay(t)}catch(e){if(my===rReq&&a&&a.speak)a.speak(t,1);return}
+  if(my!==rReq)return;rAudio=new Audio(URL.createObjectURL(bl));try{await rAudio.play()}catch(e){/* المتصفح منع التشغيل قبل اللمس: نترك زر 🔊 */}};
+ const close=()=>{try{localStorage.setItem(RULES_KEY,'1')}catch(e){}stopR();const a=API();if(a&&a.stopAudio)a.stopAudio();ov.classList.add('out');setTimeout(()=>ov.remove(),300)};
  const draw=()=>{ov.querySelectorAll('.rules-dots i').forEach((d,k)=>{d.classList.toggle('on',k===i);d.classList.toggle('done',k<i)});prev.style.visibility=i?'visible':'hidden';mas.classList.remove('jump');void mas.offsetWidth;mas.classList.add('jump');
-  if(i<RULES.length){const r=RULES[i];stage.innerHTML=`<div class="rules-rule"><div class="rules-emoji">${r.e}</div><h3>${r.t}</h3><p>${r.b}</p><small dir="ltr">${r.en}</small></div>`;next.textContent=i===RULES.length-1?'آخِرُ خُطْوَةٍ ▶':'التالي ▶';say(r.say);sfx('star',Math.min(2,i%3))}
+  if(i<RULES.length){const r=RULES[i];stage.innerHTML=`<div class="rules-rule"><div class="rules-emoji">${r.e}</div><h3>${r.t}</h3><p>${r.b}</p><small dir="ltr">${r.en}</small></div>`;next.textContent=i===RULES.length-1?'آخِرُ خُطْوَةٍ ◀':'التالي ◀';say(r.say);sfx('star',Math.min(2,i%3))}
   else{stage.innerHTML=`<div class="rules-rule rules-final"><div class="rules-emoji">🤝</div><h3>هَلْ أَنْتَ جَاهِزٌ يَا بَطَلُ؟</h3><p>أَعِدُ أَنْ <b>أَسْمَعَ جَيِّدًا</b>، وَ<b>أُحَاوِلَ</b> دَائِمًا، وَ<b>لَا أَسْتَسْلِمَ</b>!</p><button class="big-btn gold rules-ready" type="button">✋ أَنَا جَاهِزٌ!</button></div>`;next.style.display='none';say('هَلْ أَنْتَ جَاهِزٌ يَا بَطَلُ؟');
    stage.querySelector('.rules-ready').onclick=()=>{sfx('mission');react('cheer',document.querySelector('.screen.active .plus-mascot'));confettiBurst(ov);say('هَيَّا نَبْدَأُ المُغَامَرَةَ!');mas.classList.add('cheer');setTimeout(close,1900)}}};
  next.onclick=()=>{if(i<RULES.length){i++;draw()}};prev.onclick=()=>{if(i>0){i--;next.style.display='';draw()}};ov.querySelector('.rules-skip').onclick=close;
+ ov.querySelector('.rules-hear').onclick=()=>{if(lastSay)say(lastSay)};
  ov.querySelectorAll('.rules-dots i').forEach(d=>d.onclick=()=>{i=+d.dataset.k;next.style.display='';draw()});
  let x0=null;stage.addEventListener('touchstart',e=>{x0=e.touches[0].clientX},{passive:true});stage.addEventListener('touchend',e=>{if(x0==null)return;const dx=e.changedTouches[0].clientX-x0;x0=null;if(dx<-40&&i>0){i--;next.style.display='';draw()}else if(dx>40&&i<RULES.length){i++;draw()}});
  document.addEventListener('keydown',function k(e){if(!document.body.contains(ov)){document.removeEventListener('keydown',k);return}if(e.key==='ArrowLeft')next.click();if(e.key==='ArrowRight')prev.click();if(e.key==='Escape')close()});
  draw()}
 function confettiBurst(host){if(reduced())return;const box=document.createElement('div');box.className='plus-star-rain';for(let k=0;k<40;k++){const s=document.createElement('span');s.textContent=pick(['🎉','⭐','✨','🔑','🏆']);s.style.left=Math.random()*100+'%';s.style.animationDelay=Math.random()*.6+'s';box.appendChild(s)}host.appendChild(box)}
-function setupRules(){const b=document.getElementById('rulesBtn');if(b)b.onclick=()=>openRules(false);
- if(!rulesSeen()){/* أول مرة: تظهر بعد لحظة؛ الصوت يبدأ بعد أول لمسة (قيد المتصفح) */setTimeout(()=>{if(document.querySelector('#startScreen.active'))openRules(true)},700)}}
+/* V41.1: القوانين تظهر بعد الضغط على «ابدأ المغامرة» (بعد الدخول)، مرة واحدة لكل طالب */
+function rulesKeyFor(){const st=cur();return RULES_KEY+'_'+(st&&(st.id||st.code||st.name)||'x')}
+function setupRules(){const b=document.getElementById('rulesBtn');if(b)b.onclick=()=>openRules(false)}
+on('login',()=>{setTimeout(()=>{const k=rulesKeyFor();let seen=false;try{seen=localStorage.getItem(k)==='1'}catch(e){}if(seen||!cur())return;try{localStorage.setItem(k,'1')}catch(e){}openRules(true)},650)});
 window.MaamoonRules=openRules;
 function init(){wrapMascots();musicButtons();setupRules();document.body.classList.add('plus-on')}
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);else init();

@@ -24,16 +24,17 @@ export default async(request)=>{
  if(!key)return json({error:'missing_api_key'},503);
  try{
   const body=await request.json().catch(()=>({}));
-  const text=clean(body.text),slow=!!body.slow;
+  const text=clean(body.text),slow=!!body.slow,fast=!!body.fast;
   if(!text||!ARABIC.test(text))return json({error:'invalid_text'},400);
   let instructions='تحدث بالعربية الفصحى الواضحة بصوت دافئ وطبيعي ومحادثي، كرفيق تعليمي ودود لطفل يتعلم العربية كلغة ثانية. لا تتحدث كنظام آلي أو كمذيع. استخدم تنغيمًا بشريًا لطيفًا، والتزم بالنص المكتوب كما هو واحترم التشكيل والحركات والمدود بدقة.';
   instructions+=soundInstruction(text);
   /* V40.2: منع التكرار */
   instructions+=' انطق النص المكتوب مرة واحدة فقط ثم توقف تمامًا. لا تكرر أي مقطع أو كلمة، ولا تضف أي كلام قبله أو بعده.';
-  if(slow)instructions+=' انطق أبطأ قليلًا فقط مع بقاء الإيقاع طبيعيًا. لا تفصل الحروف بطريقة روبوتية.';
+  if(fast)instructions+=' تحدث بحماس وفرح بصوت إنساني دافئ وطبيعي تمامًا، بسرعة كلام طبيعية كأنك تشجع طفلًا متحمسًا، بلا بطء ولا وقفات طويلة.';
+  else if(slow)instructions+=' انطق أبطأ قليلًا فقط مع بقاء الإيقاع طبيعيًا. لا تفصل الحروف بطريقة روبوتية.';
   else instructions+=' استخدم سرعة تعليمية هادئة وطبيعية.';
   const isPhoneme=SHORT.test(text)||LONG_A.test(text)||LONG_U.test(text)||LONG_I.test(text);
-  const speed=isPhoneme?1.0:(slow?0.88:0.98);
+  const speed=isPhoneme?1.0:(fast?1.06:(slow?0.88:0.98));
   const r=await fetch('https://api.openai.com/v1/audio/speech',{method:'POST',headers:{authorization:`Bearer ${key}`,'content-type':'application/json'},body:JSON.stringify({model:'gpt-4o-mini-tts-2025-12-15',voice:'marin',input:text,instructions,response_format:'mp3',speed})});
   if(!r.ok){const err=await r.text();console.error('mamoun-tts OpenAI error',r.status,err.slice(0,500));return json({error:r.status===429?'rate_limited':'openai_tts_error'},r.status===429?429:502)}
   const audio=await r.arrayBuffer();
